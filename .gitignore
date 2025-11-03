@@ -3,8 +3,9 @@
 **/.env
 node_modules/
 
-# macOS junk
-.DS_Store
-
 # VS Code
 .vscode/
+
+# junk
+.DS_Store
+tmp/

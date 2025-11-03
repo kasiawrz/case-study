@@ -1,7 +1,7 @@
 import Map from './Map';
 
 const LiteAPI = {
-  Map
+  Map,
 };
 
 export default LiteAPI;

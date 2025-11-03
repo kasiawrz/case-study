@@ -56,7 +56,7 @@ app.get('/api/hotels', async (req, res) => {
     }
   });
 
-// Proxy endpoint for hotel rates
+// Fetch hotel rates
 app.get('/api/hotels/rates', async (req, res) => {
   try {
     const response = await axios.get(
@@ -65,7 +65,7 @@ app.get('/api/hotels/rates', async (req, res) => {
         headers: {
           'X-API-Key': process.env.LITEAPI_KEY
         },
-        params: req.query // Forward all query params
+        params: req.query
       }
     );
     res.json(response.data);
