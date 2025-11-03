@@ -34,6 +34,28 @@ app.get('/api/places/:placeId', async (req, res) => {
   }
 });
 
+// Fetch hotels on the map
+app.get('/api/hotels', async (req, res) => {
+    try {
+      const response = await axios.get(
+        `${LITEAPI_BASE_URL}/data/hotels`,
+        {
+          headers: {
+            'X-API-Key': process.env.LITEAPI_KEY
+          },
+          params: req.query
+        }
+      );
+      res.json(response.data);
+    } catch (error) {
+      console.error('Hotels API Error:', error.response?.data || error.message);
+      res.status(error.response?.status || 500).json({
+        error: 'Failed to fetch hotels',
+        details: error.response?.data
+      });
+    }
+  });
+
 // Proxy endpoint for hotel rates
 app.get('/api/hotels/rates', async (req, res) => {
   try {
