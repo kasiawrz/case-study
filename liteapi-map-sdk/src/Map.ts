@@ -1,4 +1,5 @@
 import { MapConfig } from './types';
+import MapboxAdapter from './adapters/MapboxAdapter';
 
 class Map {
   private options: MapConfig;
@@ -23,14 +24,21 @@ LiteAPI.Map.init({ selector: "#foo" })
   }
 
   private async _initialize(): Promise<void> {
+  // Validate config
+  if (!this.options.selector) {
+    throw new Error('Map selector is required');
+  }
+
     // Find the DOM element
     this.container = document.querySelector(this.options.selector);
     if (!this.container) {
       throw new Error(`Container not found: ${this.options.selector}`);
     }
+  // Create adapter
+  this.adapter = new MapboxAdapter(this.container, this.options);
 
-    // TODO: Create the adapter here
-    // TODO: Initialize the map
+  // Initialize the map
+  await this.adapter.initialize();
     
     console.log('Map initialized!', this.options);
   }
