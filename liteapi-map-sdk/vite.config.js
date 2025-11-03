@@ -23,9 +23,4 @@ export default defineConfig({
   resolve: {
     extensions: ['.ts', '.js']
   },
-  test: {
-    globals: true,
-    environment: 'jsdom', // For DOM-related tests
-    setupFiles: './src/test/setup.ts',
-  },
 });
