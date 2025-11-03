@@ -6,7 +6,7 @@ window.addEventListener('DOMContentLoaded', () => {
   try {
     const mapInstance = LiteAPI.Map.init({
       selector: '#map',
-      placeId: 'city_paris',
+      placeId: 'ChIJD7fiBh9u5kcRYJSMaMOCCwQ', // Paris
       apiUrl: 'http://localhost:3001'
     });
     
