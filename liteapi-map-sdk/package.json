@@ -10,6 +10,10 @@
     "build": "vite build",
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier . --check",
+    "format:fix": "prettier . --write",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage"
@@ -18,10 +22,21 @@
   "author": "Kasia Wrzesniak",
   "license": "ISC",
   "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.2",
+    "@typescript-eslint/parser": "^8.46.2",
     "@vitest/ui": "^4.0.6",
     "@vitest/web-worker": "^4.0.6",
+    "eslint": "^9.39.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
     "jsdom": "^27.1.0",
+    "prettier": "^3.6.2",
     "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
     "vitest": "^4.0.6"
+  },
+  "dependencies": {
+    "mapbox-gl": "^3.16.0"
   }
 }
