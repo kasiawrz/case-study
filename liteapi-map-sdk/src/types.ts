@@ -13,8 +13,8 @@ export interface MapConfig {
     longitude: number;
   };
 
-  // TODO: Optional params
-  mapboxToken?: string;
+  mapToken: string;
+  // Optional overrides
   currency?: string;
   adults?: number;
   guestNationality?: string;

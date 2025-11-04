@@ -1,6 +1,7 @@
 import LiteAPI from '../src/index';
 
 window.addEventListener('DOMContentLoaded', () => {
+  const mapToken = 'pk.eyJ1Ijoia2FzLXNlIiwiYSI6ImNtaGl1ZDdwajBoY2kybHF3ajQ1b2k3ZjkifQ.J7wxCujqrQ77uysYs4zfQw'
   console.log('Demo starting...');
 
   // Map 1: Paris
@@ -9,6 +10,11 @@ window.addEventListener('DOMContentLoaded', () => {
       selector: '#map-paris',
       placeId: 'ChIJD7fiBh9u5kcRYJSMaMOCCwQ', // Paris
       apiUrl: 'http://localhost:3001',
+      mapToken,
+      // Optional overrides (provider-agnostic):
+      // currency: 'USD',
+      // adults: 2,
+      // guestNationality: 'US',
     });
   } catch (error) {
     console.error('❌ Paris map failed:', error);
@@ -20,9 +26,10 @@ window.addEventListener('DOMContentLoaded', () => {
       selector: '#map-ams',
       placeId: 'ChIJVXealLU_xkcRja_At0z9AGY', // AMS
       // city: {
-      //   name: "Amsterdam",
-      //   countryCode: "NL",
+        //   name: "Amsterdam",
+        //   countryCode: "NL",
       // },
+      mapToken,
       apiUrl: 'http://localhost:3001',
     });
   } catch (error) {

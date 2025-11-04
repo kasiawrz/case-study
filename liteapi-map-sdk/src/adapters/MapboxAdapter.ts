@@ -24,8 +24,8 @@ class MapboxAdapter {
   }
 
   async initialize(): Promise<void> {
-    mapboxgl.accessToken =
-      'pk.eyJ1Ijoia2FzLXNlIiwiYSI6ImNtaGl1ZDdwajBoY2kybHF3ajQ1b2k3ZjkifQ.J7wxCujqrQ77uysYs4zfQw';
+    // Provider token (public). If not provided, Map SDK may rely on a global token.
+    mapboxgl.accessToken = this.options.mapToken || '';
 
     if (this.options.placeId) {
       await this.initializeWithPlaceId();
@@ -74,9 +74,18 @@ class MapboxAdapter {
         padding: 50,
       },
     });
+
+    // Wait for map to be fully loaded
+    await new Promise(resolve => this.map!.once('load', resolve));
+
+    // Add controls after map is loaded
+    this.map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+    // this.map.addControl(new mapboxgl.NavigationControl());
+    // this.map.addControl(new mapboxgl.FullscreenControl());
   }
 
-  private initializeWithCity(): void {
+  private async initializeWithCity(): Promise<void> {
     this.locationParams = {
       cityName: this.options.city!.name,
       countryCode: this.options.city!.countryCode,
@@ -85,11 +94,14 @@ class MapboxAdapter {
     this.map = new mapboxgl.Map({
       container: this.container,
       style: 'mapbox://styles/mapbox/streets-v12',
-      zoom: 12, // TO DO
+      zoom: 12,
     });
+
+    await new Promise(resolve => this.map!.once('load', resolve));
+    this.map.addControl(new mapboxgl.NavigationControl(), 'top-right');
   }
 
-  private initializeWithCoordinates(): void {
+  private async initializeWithCoordinates(): Promise<void> {
     this.locationParams = {
       latitude: this.options.coordinates!.latitude,
       longitude: this.options.coordinates!.longitude,
@@ -101,6 +113,9 @@ class MapboxAdapter {
       center: [this.options.coordinates!.longitude, this.options.coordinates!.latitude],
       zoom: 12, // TO DO
     });
+
+    await new Promise(resolve => this.map!.once('load', resolve));
+    this.map.addControl(new mapboxgl.NavigationControl(), 'top-right');
   }
 
   private async loadHotels(): Promise<void> {
