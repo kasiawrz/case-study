@@ -16,6 +16,11 @@ export default defineConfig({
         globals: {},
       },
     },
+    // Strip console statements in production builds (only console.log, warn/error kept)
+    minify: 'esbuild',
+    esbuild: {
+      drop: process.env.NODE_ENV === 'production' ? ['console'] : [],
+    },
   },
   server: {
     open: '/demo/index.html',

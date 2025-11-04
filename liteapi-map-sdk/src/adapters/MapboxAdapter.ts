@@ -19,144 +19,114 @@ class MapboxAdapter {
     this.container = container;
     this.apiClient = new ApiClient(options.apiUrl);
     this.options = options;
-    this.checkin = getToday();
-    this.checkout = getTomorrow();
+    this.checkin = options.checkin || getToday();
+    this.checkout = options.checkout || getTomorrow();
   }
 
   async initialize(): Promise<void> {
-     // TO DO: Get from env
     mapboxgl.accessToken =
       'pk.eyJ1Ijoia2FzLXNlIiwiYSI6ImNtaGl1ZDdwajBoY2kybHF3ajQ1b2k3ZjkifQ.J7wxCujqrQ77uysYs4zfQw';
 
-    // If using placeId, fetch place data to get city/country
     if (this.options.placeId) {
-      const placeData = await this.apiClient.getPlace(this.options.placeId);
-
-      if (!placeData || !placeData.data.viewport) {
-        throw new Error(`Failed to fetch place data for placeId: ${this.options.placeId}`);
-      }
-
-      // Extract cityName and countryCode from addressComponents
-      const addressComponents = placeData.data.addressComponents;
-
-      const cityComponent = addressComponents?.find((c: any) => c.types.includes('locality'));
-      const countryComponent = addressComponents?.find((c: any) => c.types.includes('country'));
-
-      // Store for use in loadHotels
-      this.locationParams = {
-        cityName: cityComponent?.longText,
-        countryCode: countryComponent?.shortText,
-        placeId: this.options.placeId,
-      };
-
-
-      const { viewport } = placeData.data;
-      // Create the map
-      this.map = new mapboxgl.Map({
-        container: this.container,
-        style: 'mapbox://styles/mapbox/streets-v12',
-        bounds: [
-          [viewport.low.longitude, viewport.low.latitude], // southwest
-          [viewport.high.longitude, viewport.high.latitude], // northeast
-        ],
-        fitBoundsOptions: {
-          // TO DO
-          padding: 50,
-        },
-      });
-
-      this.map.on('load', async () => {
-        console.log(' which city ? ', this.options.placeId);
-        await this.loadHotels();
-      });
-
-      console.log('✅ Mapbox map created!');
+      await this.initializeWithPlaceId();
     } else if (this.options.city) {
-      this.locationParams = {
-        cityName: this.options.city.name,
-        countryCode: this.options.city.countryCode,
-      };
-
-      // Create map without bounds (will fit to hotels later)
-      this.map = new mapboxgl.Map({
-        container: this.container,
-        style: 'mapbox://styles/mapbox/streets-v12',
-        zoom: 12,
-      });
+      this.initializeWithCity();
     } else if (this.options.coordinates) {
-      this.locationParams = {
-        latitude: this.options.coordinates.latitude,
-        longitude: this.options.coordinates.longitude,
-      };
-      this.map = new mapboxgl.Map({
-        container: this.container,
-        style: 'mapbox://styles/mapbox/streets-v12',
-        center: [this.options.coordinates.longitude, this.options.coordinates.latitude],
-        zoom: 12,
-      });
+      this.initializeWithCoordinates();
     }
-    this.map.on('load', async () => {
+
+    this.map!.on('load', async () => {
       await this.loadHotels();
+    });
+  }
+
+  private async initializeWithPlaceId(): Promise<void> {
+    const placeData = await this.apiClient.getPlace(this.options.placeId!);
+
+    if (!placeData?.data?.viewport) {
+      throw new Error(`Failed to fetch place data for placeId: ${this.options.placeId}`);
+    }
+
+    // Extract cityName and countryCode from addressComponents
+    const cityComponent = placeData.data.addressComponents?.find((c) =>
+      c.types.includes('locality'),
+    );
+    const countryComponent = placeData.data.addressComponents?.find((c) =>
+      c.types.includes('country'),
+    );
+
+    this.locationParams = {
+      cityName: cityComponent?.longText,
+      countryCode: countryComponent?.shortText,
+      placeId: this.options.placeId,
+    };
+
+    const { viewport } = placeData.data;
+
+    this.map = new mapboxgl.Map({
+      container: this.container,
+      style: 'mapbox://styles/mapbox/streets-v12',
+      bounds: [
+        [viewport.low.longitude, viewport.low.latitude],
+        [viewport.high.longitude, viewport.high.latitude],
+      ],
+      fitBoundsOptions: {
+        padding: 50,
+      },
+    });
+  }
+
+  private initializeWithCity(): void {
+    this.locationParams = {
+      cityName: this.options.city!.name,
+      countryCode: this.options.city!.countryCode,
+    };
+
+    this.map = new mapboxgl.Map({
+      container: this.container,
+      style: 'mapbox://styles/mapbox/streets-v12',
+      zoom: 12, // TO DO
+    });
+  }
+
+  private initializeWithCoordinates(): void {
+    this.locationParams = {
+      latitude: this.options.coordinates!.latitude,
+      longitude: this.options.coordinates!.longitude,
+    };
+
+    this.map = new mapboxgl.Map({
+      container: this.container,
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: [this.options.coordinates!.longitude, this.options.coordinates!.latitude],
+      zoom: 12, // TO DO
     });
   }
 
   private async loadHotels(): Promise<void> {
     try {
-      // Based on provided location method
-      // const hotelsParams: any = { limit: 20 };
-
-      // if (this.options.placeId) {
-      //   hotelsParams.placeId = this.options.placeId;
-      // } else if (this.options.city) {
-      //   hotelsParams.cityName = this.options.city.name;
-      //   hotelsParams.countryCode = this.options.city.countryCode;
-      // } else if (this.options.coordinates) {
-      //   hotelsParams.latitude = this.options.coordinates.latitude;
-      //   hotelsParams.longitude = this.options.coordinates.longitude;
-      // }
-
+      // Fetch hotels (with coordinates)
       const hotelsData = await this.apiClient.getHotels({
         ...this.locationParams,
-        limit: 20
+        limit: 20,
       });
-      // Fetch hotels (with coordinates)
-      // const hotelsData = await this.apiClient.getHotels(hotelsParams);
-      console.log({ hotelsData });
 
-      // Based on provided location method
-      // const ratesParams: any = {
-      //   occupancies: [{ adults: 2 }], // TO DO!
-      //   checkin: this.checkin,
-      //   checkout: this.checkout,
-      //   guestNationality: 'US', // TO DO!
-      //   currency: 'USD', // TO DO!
-      //   maxRatesPerHotel: 1,
-      //   limit: 20,
-      // };
-
-      // if (this.options.placeId) {
-      //   ratesParams.placeId = this.options.placeId;
-      // } else if (this.options.city) {
-      //   ratesParams.cityName = this.options.city.name;
-      //   ratesParams.countryCode = this.options.city.countryCode;
-      // } else if (this.options.coordinates) {
-      //   ratesParams.latitude = this.options.coordinates.latitude;
-      //   ratesParams.longitude = this.options.coordinates.longitude;
-      // }
+      // Resolve runtime defaults
+      const adults = this.options.adults || 2;
+      const currency = this.options.currency || 'USD';
+      const guestNationality = this.options.guestNationality || 'US';
 
       // Fetch hotel rates (prices)
       const ratesData = await this.apiClient.getRates({
         ...this.locationParams,
-        occupancies: [{ adults: 2 }],
+        occupancies: [{ adults }],
         checkin: this.checkin,
         checkout: this.checkout,
-        guestNationality: 'US',
-        currency: 'USD',
+        guestNationality,
+        currency,
         maxRatesPerHotel: 1,
-        limit: 20
+        limit: 20,
       });
-      // const ratesData = await this.apiClient.getRates(ratesParams);
-      console.log({ ratesData });
 
       if (!hotelsData?.data || !ratesData?.data) {
         console.warn('No hotel or rates data received');
@@ -166,7 +136,7 @@ class MapboxAdapter {
       const hotelsWithPrices = this.mergeHotelsWithRates(hotelsData.data, ratesData.data);
 
       this.clearMarkers();
-      console.log('->>>> ', { hotelsWithPrices });
+
       // Add markers for each hotel
       hotelsWithPrices.forEach((hotel) => {
         this.addHotelMarker(hotel);
@@ -180,7 +150,7 @@ class MapboxAdapter {
 
   private mergeHotelsWithRates(
     hotels: HotelsResponse['data'],
-    rates: any, //RatesResponse['data'], TODO URGENT!!!
+    rates: RatesResponse['data'],
   ): Hotel[] {
     // Create a map: hotelId -> {price, currency}
     const priceMap = new Map<string, { price: number; currency: string }>();
@@ -189,7 +159,8 @@ class MapboxAdapter {
     rates.forEach((rate) => {
       const sellingPrice = rate.roomTypes[0]?.suggestedSellingPrice.amount;
       const currency = rate.roomTypes[0]?.suggestedSellingPrice.currency;
-      if (sellingPrice) {
+
+      if (sellingPrice && currency) {
         priceMap.set(rate.hotelId, {
           price: sellingPrice,
           currency,
@@ -198,10 +169,13 @@ class MapboxAdapter {
     });
 
     // Merge hotels with their prices
-    return hotels
-      .map((hotel) => {
-        const priceInfo = priceMap.get(hotel.id);
-        return {
+    const hotelsWithPrices: Hotel[] = [];
+
+    hotels.forEach((hotel) => {
+      const priceInfo = priceMap.get(hotel.id);
+
+      if (priceInfo) {
+        hotelsWithPrices.push({
           id: hotel.id,
           name: hotel.name,
           latitude: hotel.latitude,
@@ -211,12 +185,14 @@ class MapboxAdapter {
           photo: hotel.main_photo,
           stars: hotel.stars,
           priceInfo: {
-            price: priceInfo?.price,
-            currency: priceInfo?.currency,
+            price: priceInfo.price,
+            currency: priceInfo.currency,
           },
-        };
-      })
-      .filter((hotel) => hotel.priceInfo?.price !== undefined); // Only show hotels with prices
+        });
+      }
+    });
+
+    return hotelsWithPrices;
   }
 
   private addHotelMarker(hotel: Hotel): void {
@@ -232,7 +208,20 @@ class MapboxAdapter {
         <span style="font-size: 14px; color:rgb(31, 102, 16);">
           ${hotel.priceInfo?.currency} ${hotel.priceInfo?.price}
         </span><br />
-        <button> Click to book → </button>
+        <button style="
+          margin-top: 12px;
+          padding: 8px 16px;
+          background: #2563eb;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 14px;
+          font-weight: 600;
+          width: 100%;
+        "> 
+          Click to book → 
+        </button>
       </div>
     `;
 
@@ -252,11 +241,14 @@ class MapboxAdapter {
 
       if (bookBtn) {
         bookBtn.addEventListener('click', () => {
+          const currency = this.options.currency || 'USD';
           const url = buildWhitelabelUrl({
             hotelId: hotel.id,
+            placeId: this.options.placeId || '',
             checkin: this.checkin,
             checkout: this.checkout,
-            adults: 2, // TODO: add Children, with age
+            adults: this.options.adults || 2,
+            currency,
           });
 
           window.open(url, '_blank');

@@ -12,6 +12,14 @@ export interface MapConfig {
     latitude: number;
     longitude: number;
   };
+
+  // TODO: Optional params
+  mapboxToken?: string;
+  currency?: string;
+  adults?: number;
+  guestNationality?: string;
+  checkin?: string;
+  checkout?: string;
 }
 
 // LiteAPI place response
@@ -103,7 +111,6 @@ export interface Hotel {
     price: number;
     currency: string;
   };
-  currency?: string;
   address?: string;
   rating?: number;
   photo?: string;
