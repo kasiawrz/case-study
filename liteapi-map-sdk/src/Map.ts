@@ -17,6 +17,7 @@ LiteAPI.Map.init({ selector: "#foo" })
    * @param config - Configuration object
    * @returns Map instance
    */
+
   static init(config: MapConfig): Map {
     const instance = new Map(config);
     instance._initialize();
@@ -27,6 +28,28 @@ LiteAPI.Map.init({ selector: "#foo" })
     // Validate config
     if (!this.options.selector) {
       throw new Error('Map selector is required');
+    }
+    if (!this.options.apiUrl) {
+      throw new Error('apiUrl is required');
+    }
+
+    // Validate location - exactly one of hasPlaceId, has City, has Coordinates needs to be treu
+    const hasPlaceId = !!this.options.placeId;
+    const hasCity = !!(this.options.city?.name && this.options.city?.countryCode);
+    const hasCoordinates = !!(
+      this.options.coordinates?.latitude && this.options.coordinates?.longitude
+    );
+
+    const locationCount = [hasPlaceId, hasCity, hasCoordinates].filter(Boolean).length;
+
+    if (locationCount === 0) {
+      throw new Error(
+        'Location is required. Provide one of: placeId, city (with countryCode), or coordinates (latitude & longitude)',
+      );
+    }
+
+    if (locationCount > 1) {
+      throw new Error('Provide only ONE location method: placeId, city, or coordinates');
     }
 
     // Find the DOM element

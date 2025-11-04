@@ -1,13 +1,28 @@
 export interface MapConfig {
   selector: string;
-  placeId: string;
   apiUrl: string;
-  //TODO: Double check
+
+  // Location - ONE of these is required
+  placeId?: string;
+  city?: {
+    name: string;
+    countryCode: string; // ISO-2 (e.g., 'US', 'FR', 'SG')
+  };
+  coordinates?: {
+    latitude: number;
+    longitude: number;
+  };
 }
 
 // LiteAPI place response
 export interface PlaceData {
   data: {
+    addressComponents: Array<{
+      languageCode: string;
+      longText: string;
+      shortText: string;
+      types: string[];
+    }>;
     location: {
       latitude: number;
       longitude: number;
@@ -27,8 +42,9 @@ export interface PlaceData {
 
 // Parameters for fetching hotels (GET /api/hotels)
 export interface HotelsParams {
-  countryCode: string;
-  cityName: string;
+  countryCode?: string; // TODO RM?
+  cityName?: string; // TODO RM?
+  placeId: string;
   limit?: number;
   minRating?: number; // TO DO? Should I keep it?
 }
@@ -73,8 +89,8 @@ export interface RatesResponse {
         amount: number;
         currency: string;
       };
-    }>
-    }>
+    }>;
+  }>;
 }
 
 // Merged hotel structure
@@ -83,7 +99,10 @@ export interface Hotel {
   name: string;
   latitude: number;
   longitude: number;
-  price?: number; // TODO
+  priceInfo?: {
+    price: number;
+    currency: string;
+  };
   currency?: string;
   address?: string;
   rating?: number;

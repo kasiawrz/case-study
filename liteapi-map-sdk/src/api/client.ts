@@ -28,9 +28,9 @@ class ApiClient {
     const response = await fetch(`${this.baseUrl}/api/hotels/rates`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(params)
+      body: JSON.stringify(params),
     });
     if (!response.ok) {
       throw new Error(`Failed to fetch rates: ${response.statusText}`);
@@ -38,6 +38,5 @@ class ApiClient {
     return response.json();
   }
 }
-
 
 export default ApiClient;
