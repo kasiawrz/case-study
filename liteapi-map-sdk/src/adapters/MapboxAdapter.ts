@@ -115,12 +115,13 @@ class MapboxAdapter {
     });
   }
 
-  private async loadHotels(): Promise<void> {
+  async loadHotels(): Promise<void> {
     try {
       // Fetch hotels (with coordinates)
       const hotelsData = await this.apiClient.getHotels({
         ...this.locationParams,
         limit: 20,
+        minRating: this.options.minRating,
       });
 
       // Resolve runtime defaults

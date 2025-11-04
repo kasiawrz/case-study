@@ -20,6 +20,7 @@ export interface MapConfig {
   guestNationality?: string;
   checkin?: string;
   checkout?: string;
+  minRating?: number; // Minimum hotel rating (0-10)
 }
 
 // LiteAPI place response

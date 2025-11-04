@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LiteAPI Map SDK - Runtime Customization Demo</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        padding: 20px;
+        background: #f5f5f5;
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,
+          sans-serif;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        margin-bottom: 10px;
+        color: #333;
+      }
+
+      .subtitle {
+        color: #666;
+        margin-bottom: 30px;
+      }
+
+      .controls {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+
+      .control-group {
+        margin-bottom: 20px;
+      }
+
+      .control-group:last-child {
+        margin-bottom: 0;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #333;
+      }
+
+      .slider-container {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      input[type='range'] {
+        flex: 1;
+        height: 6px;
+        border-radius: 3px;
+        background: #e0e0e0;
+        outline: none;
+        -webkit-appearance: none;
+      }
+
+      input[type='range']::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #2563eb;
+        cursor: pointer;
+      }
+
+      input[type='range']::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #2563eb;
+        cursor: pointer;
+        border: none;
+      }
+
+      .value-display {
+        min-width: 50px;
+        text-align: center;
+        font-weight: 600;
+        color: #2563eb;
+        font-size: 18px;
+      }
+
+      .info {
+        font-size: 14px;
+        color: #666;
+        margin-top: 5px;
+      }
+
+      .map-container {
+        width: 100%;
+        height: 500px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        background: white;
+      }
+
+      .loading {
+        display: none;
+        color: #2563eb;
+        font-weight: 600;
+        margin-top: 10px;
+      }
+
+      .loading.active {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Runtime Customization Demo</h1>
+      <p class="subtitle">Adjust the minimum rating to filter hotels dynamically</p>
+
+      <div class="controls">
+        <div class="control-group">
+          <label for="minRating">Minimum Hotel Rating</label>
+          <div class="slider-container">
+            <input type="range" id="minRating" min="0" max="10" step="0.5" value="8" />
+            <span class="value-display" id="ratingValue">8.0</span>
+          </div>
+          <div class="info">
+            Only hotels with rating ≥ <span id="ratingText">8.0</span> will be shown
+          </div>
+          <div class="loading" id="loading">Updating hotels...</div>
+        </div>
+      </div>
+
+      <div id="map" class="map-container"></div>
+    </div>
+    <script type="module" src="./runtime-customization.ts"></script>
+  </body>
+</html>

@@ -73,7 +73,40 @@ After initialization, the SDK will:
 - Load hotels and rates for the current location.
 - Render markers and a booking link in a popup for each hotel.
 
-You typically initialize once per container. To remove the map, call the instance’s `destroy()` method if the consuming code exposes it in your integration.
+You typically initialize once per container. To remove the map, call the instance's `destroy()` method if the consuming code exposes it in your integration.
+
+### Runtime Customization
+You can update the map configuration at runtime using `updateConfig()`. This will reload hotels with the new settings:
+
+```ts
+const map = LiteAPI.Map.init({
+  selector: '#map',
+  apiUrl: 'https://your-backend.example.com',
+  placeId: 'YOUR_PLACE_ID',
+  minRating: 8,
+  currency: 'USD',
+});
+
+// Later, update the configuration
+await map.updateConfig({
+  minRating: 9,           // Filter to only 9+ rated hotels
+  currency: 'EUR',        // Change currency
+  adults: 4,              // Update occupancy
+  checkin: '2025-12-01',  // Change dates
+  checkout: '2025-12-05',
+  guestNationality: 'FR', // Change guest nationality
+});
+```
+
+The `updateConfig()` method accepts a partial configuration object with the following optional fields:
+- `currency` - Currency for price display
+- `adults` - Number of adults for occupancy
+- `guestNationality` - Guest nationality (ISO country code)
+- `checkin` - Check-in date (YYYY-MM-DD)
+- `checkout` - Check-out date (YYYY-MM-DD)
+- `minRating` - Minimum hotel rating (0-10)
+
+After updating, the map will automatically reload hotels with the new configuration.
 
 ## API Reference
 
@@ -109,5 +142,27 @@ interface MapConfig {
 | guestNationality   | string                                    | No       | 'US'               | Guest nationality for rate queries. |
 | checkin            | string (YYYY-MM-DD)                        | No       | today              | Check-in date. |
 | checkout           | string (YYYY-MM-DD)                        | No       | tomorrow           | Check-out date. |
+| minRating          | number                                    | No       | —                  | Minimum hotel rating (0-10) to filter results. |
 
-That’s it — you’re ready to install, initialize, and use the SDK in your web app.
+### Methods
+
+#### `map.updateConfig(updates)`
+Update map configuration at runtime and reload hotels.
+
+**Parameters:**
+- `updates` (object): Partial configuration object with any of:
+  - `currency?: string` - Currency for price display
+  - `adults?: number` - Number of adults for occupancy
+  - `guestNationality?: string` - Guest nationality (ISO country code)
+  - `checkin?: string` - Check-in date (YYYY-MM-DD)
+  - `checkout?: string` - Check-out date (YYYY-MM-DD)
+  - `minRating?: number` - Minimum hotel rating (0-10)
+
+**Returns:** `Promise<void>`
+
+**Example:**
+```ts
+await map.updateConfig({ minRating: 9, currency: 'EUR' });
+```
+
+That's it — you're ready to install, initialize, and use the SDK in your web app.

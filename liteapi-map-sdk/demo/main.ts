@@ -26,8 +26,8 @@ window.addEventListener('DOMContentLoaded', () => {
       selector: '#map-ams',
       placeId: 'ChIJVXealLU_xkcRja_At0z9AGY', // AMS
       // city: {
-        //   name: "Amsterdam",
-        //   countryCode: "NL",
+      //     name: "Amsterdam",
+      //     countryCode: "NL",
       // },
       mapToken,
       apiUrl: 'http://localhost:3001',
