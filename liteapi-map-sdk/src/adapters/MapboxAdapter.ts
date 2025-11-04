@@ -38,6 +38,9 @@ class MapboxAdapter {
     this.map!.on('load', async () => {
       await this.loadHotels();
     });
+
+    // Add navigation controls (zoom, rotation)
+    this.map!.addControl(new mapboxgl.NavigationControl(), 'top-right');
   }
 
   private async initializeWithPlaceId(): Promise<void> {
@@ -73,19 +76,15 @@ class MapboxAdapter {
       fitBoundsOptions: {
         padding: 50,
       },
+      scrollZoom: false, // Disable scroll zoom
+      boxZoom: true, // Enable box zoom
+      dragRotate: true, // Enable drag rotation
+      keyboard: true, // Enable keyboard controls
+      touchZoomRotate: true // Enable touch zoom & rotation
     });
-
-    // Wait for map to be fully loaded
-    await new Promise(resolve => this.map!.once('load', resolve));
-
-    // Add controls after map is loaded
-    this.map.addControl(new mapboxgl.NavigationControl(), 'top-right');
-
-    // this.map.addControl(new mapboxgl.NavigationControl());
-    // this.map.addControl(new mapboxgl.FullscreenControl());
   }
 
-  private async initializeWithCity(): Promise<void> {
+  private initializeWithCity(): void {
     this.locationParams = {
       cityName: this.options.city!.name,
       countryCode: this.options.city!.countryCode,
@@ -94,14 +93,15 @@ class MapboxAdapter {
     this.map = new mapboxgl.Map({
       container: this.container,
       style: 'mapbox://styles/mapbox/streets-v12',
+      // bounds: [
+      //   [viewport.low.longitude, viewport.low.latitude],
+      //   [viewport.high.longitude, viewport.high.latitude],
+      // ],
       zoom: 12,
     });
-
-    await new Promise(resolve => this.map!.once('load', resolve));
-    this.map.addControl(new mapboxgl.NavigationControl(), 'top-right');
   }
 
-  private async initializeWithCoordinates(): Promise<void> {
+  private initializeWithCoordinates(): void {
     this.locationParams = {
       latitude: this.options.coordinates!.latitude,
       longitude: this.options.coordinates!.longitude,
@@ -113,9 +113,6 @@ class MapboxAdapter {
       center: [this.options.coordinates!.longitude, this.options.coordinates!.latitude],
       zoom: 12, // TO DO
     });
-
-    await new Promise(resolve => this.map!.once('load', resolve));
-    this.map.addControl(new mapboxgl.NavigationControl(), 'top-right');
   }
 
   private async loadHotels(): Promise<void> {
@@ -244,6 +241,9 @@ class MapboxAdapter {
       offset: 25,
       closeButton: true,
     }).setHTML(popupContent);
+
+    console.log('🥰')
+    console.log('🥰 hotel', hotel)
 
     const marker = new mapboxgl.Marker()
       .setLngLat([hotel.longitude, hotel.latitude])
