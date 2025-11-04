@@ -1,6 +1,6 @@
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { MapConfig, Hotel } from '../types';
+import { MapConfig, Hotel, RatesResponse, HotelsResponse } from '../types';
 import ApiClient from '../api/client';
 
 class MapboxAdapter {
@@ -50,23 +50,40 @@ class MapboxAdapter {
 
   private async loadHotels(): Promise<void> {
     try {
+      // Fetch hotels (with coordinates)
       // TO DO: Passt countryCode and cityName
       // Paris hardcoded
       const hotelsData = await this.apiClient.getHotels({
         countryCode: 'FR',
         cityName: 'Paris',
+        limit: 20,
+        minRating: 8, // TO DO: idea - Only good hotels (?)
+      });
+
+      // Fetch hotel rates (prices)
+      const ratesData = await this.apiClient.getRates({
+        occupancies: [{ adults: 2 }],
+        checkin: '2025-11-04',
+        checkout: '2025-11-05',
+        guestNationality: 'US',
+        currency: 'USD',
+        countryCode: 'FR',
+        cityName: 'Paris',
+        maxRatesPerHotel: 1,
         limit: 20
       });
 
-      if (!hotelsData || !hotelsData.data) {
-        console.warn('No hotel data received');
+      if (!hotelsData?.data || !ratesData?.data) {
+        console.warn('No hotel or rates data received');
         return;
       }
+
+      const hotelsWithPrices = this.mergeHotelsWithRates(hotelsData.data, ratesData.data);
 
       this.clearMarkers();
 
       // Add markers for each hotel
-      hotelsData.data.forEach(hotel => {
+      hotelsWithPrices.forEach(hotel => {
         this.addHotelMarker(hotel);
       });
 
@@ -76,18 +93,61 @@ class MapboxAdapter {
     }
   }
 
+  private mergeHotelsWithRates(
+    hotels: HotelsResponse['data'],
+    rates: RatesResponse['data']
+  ): Hotel[] {
+    console.log({hotels})
+    console.log({rates})
+    // Create a map: hotelId -> {price, currency}
+    const priceMap = new Map<string, { price: number; currency: string }>();
+
+    // Add price data to the map
+    rates.forEach(rate => {
+      const sellingPrice = rate.roomTypes[0]?.suggestedSellingPrice.amount
+      const currency = rate.roomTypes[0]?.suggestedSellingPrice.currency
+      if (sellingPrice) {
+        priceMap.set(rate.hotelId, {
+          price: sellingPrice,
+          currency,
+        })
+      }
+    })
+
+    // Merge hotels with their prices
+    return hotels
+      .map(hotel => {
+        const priceInfo = priceMap.get(hotel.id);
+        return {
+          id: hotel.id,
+          name: hotel.name,
+          latitude: hotel.latitude,
+          longitude: hotel.longitude,
+          address: hotel.address,
+          rating: hotel.rating,
+          photo: hotel.main_photo,
+          stars: hotel.stars,
+          price: priceInfo?.price,
+          currency: priceInfo?.currency
+        };
+      })
+      .filter(hotel => hotel.price !== undefined); // Only show hotels with prices
+  }
+
   private addHotelMarker(hotel: Hotel): void {
     if (!hotel.latitude || !hotel.longitude || !this.map) {
       return;
     }
-
     // Create a popup 
     // TO DO: Add price
     const popupContent = `
       <div style="padding: 8px;">
         <strong>${hotel.name}</strong><br/>
         <span style="font-size: 12px; color: #666;">${hotel.address}</span><br/>
-        <span style="font-size: 14px;">⭐ ${hotel.rating || 'N/A'}</span>
+        <span style="font-size: 14px;">⭐ ${hotel.rating || 'N/A'}</span><br/>
+        <span style="font-size: 14px; color:rgb(31, 102, 16);">
+        ${hotel.currency} ${hotel.price}
+      </span>
       </div>
     `;
 

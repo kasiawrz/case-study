@@ -30,6 +30,7 @@ export interface HotelsParams {
   countryCode: string;
   cityName: string;
   limit?: number;
+  minRating?: number; // TO DO? Should I keep it?
 }
 
 // LiteAPI /data/hotels response (has coordinates)
@@ -49,28 +50,31 @@ export interface HotelsResponse {
   }>;
 }
 
+// Parameters for fetching rates (POST /api/hotels/rates)
+// TO DO - chouble check LOCATION param
+export interface RatesParams {
+  occupancies: Array<{ adults: number }>;
+  checkin: string;
+  checkout: string;
+  guestNationality: string;
+  currency: string;
+  countryCode: string;
+  cityName: string;
+  maxRatesPerHotel?: number;
+  limit?: number;
+}
+
 // LiteAPI /hotels/rates response (has prices, NO coordinates)
 export interface RatesResponse {
   data: Array<{
     hotelId: string;
     roomTypes: Array<{
-      rates: Array<{
-        retailRate: {
-          total: Array<{
-            amount: number;
-            currency: string;
-          }>;
-        };
-      }>;
-    }>;
-  }>;
-  hotels: Array<{
-    id: string;
-    name: string;
-    main_photo: string;
-    address: string;
-    rating: number;
-  }>;
+      suggestedSellingPrice: {
+        amount: number;
+        currency: string;
+      };
+    }>
+    }>
 }
 
 // Merged hotel structure

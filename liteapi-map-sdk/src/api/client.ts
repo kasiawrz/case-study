@@ -1,4 +1,4 @@
-import { PlaceData, HotelsParams, HotelsResponse } from '../types';
+import { PlaceData, HotelsParams, HotelsResponse, RatesParams, RatesResponse } from '../types';
 
 class ApiClient {
   private baseUrl: string;
@@ -23,6 +23,21 @@ class ApiClient {
     }
     return response.json();
   }
+
+  async getRates(params: RatesParams): Promise<RatesResponse> {
+    const response = await fetch(`${this.baseUrl}/api/hotels/rates`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(params)
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to fetch rates: ${response.statusText}`);
+    }
+    return response.json();
+  }
 }
+
 
 export default ApiClient;

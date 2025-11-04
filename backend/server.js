@@ -57,15 +57,18 @@ app.get('/api/hotels', async (req, res) => {
   });
 
 // Fetch hotel rates
-app.get('/api/hotels/rates', async (req, res) => {
+app.post('/api/hotels/rates', async (req, res) => {
   try {
-    const response = await axios.get(
+
+    const response = await axios.post(
       `${LITEAPI_BASE_URL}/hotels/rates`,
+      req.body,
       {
         headers: {
-          'X-API-Key': process.env.LITEAPI_KEY
+          'X-API-Key': process.env.LITEAPI_KEY,
+          'Content-Type': 'application/json',
+          'accept': 'application/json'
         },
-        params: req.query
       }
     );
     res.json(response.data);
