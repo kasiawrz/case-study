@@ -2,6 +2,8 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { MapConfig, Hotel, RatesResponse, HotelsResponse } from '../types';
 import ApiClient from '../api/client';
+import { getToday, getTomorrow } from '../utils/dates';
+import { buildWhitelabelUrl } from '../utils/whitelabel';
 
 class MapboxAdapter {
   private container: HTMLElement;
@@ -9,11 +11,15 @@ class MapboxAdapter {
   private map: mapboxgl.Map | null = null;
   private apiClient: ApiClient;
   private markers: mapboxgl.Marker[] = [];
+  private checkin: string;
+  private checkout: string;
 
   constructor(container: HTMLElement, options: MapConfig) {
     this.container = container;
     this.apiClient = new ApiClient(options.apiUrl);
     this.options = options;
+    this.checkin = getToday();
+    this.checkout = getTomorrow();
   }
 
   async initialize(): Promise<void> {
@@ -146,20 +152,40 @@ class MapboxAdapter {
         <span style="font-size: 12px; color: #666;">${hotel.address}</span><br/>
         <span style="font-size: 14px;">⭐ ${hotel.rating || 'N/A'}</span><br/>
         <span style="font-size: 14px; color:rgb(31, 102, 16);">
-        ${hotel.currency} ${hotel.price}
-      </span>
+          ${hotel.currency} ${hotel.price}
+        </span><br />
+        <button> Click to book → </button>
       </div>
     `;
 
     const popup = new mapboxgl.Popup({
       offset: 25,
-      closeButton: false
+      closeButton: true
     }).setHTML(popupContent);
 
     const marker = new mapboxgl.Marker()
-      .setLngLat([hotel.longitude, hotel.latitude])
-      .setPopup(popup)
-      .addTo(this.map);
+    .setLngLat([hotel.longitude, hotel.latitude])
+    .setPopup(popup)
+    .addTo(this.map);
+
+    popup.on('open', () => {
+      const popupElement = popup.getElement();
+      const bookBtn = popupElement?.querySelector('button');
+      
+      if (bookBtn) {
+        bookBtn.addEventListener('click', () => {
+          const url = buildWhitelabelUrl({
+            hotelId: hotel.id,
+            placeId: this.options.placeId,
+            checkin: this.checkin,
+            checkout: this.checkout,
+            adults: 2
+          });
+          
+          window.open(url, '_blank');
+        });
+      }
+    });
 
     this.markers.push(marker);
   }
