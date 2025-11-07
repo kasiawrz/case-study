@@ -107,6 +107,39 @@
         margin-top: 5px;
       }
 
+      .date-inputs {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+      }
+
+      .date-input-group {
+        flex: 1;
+        min-width: 150px;
+      }
+
+      input[type='date'] {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        font-size: 14px;
+        font-family: inherit;
+      }
+
+      input[type='date']:focus {
+        outline: none;
+        border-color: #2563eb;
+      }
+
+      .search-info {
+        font-size: 14px;
+        color: #666;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #e0e0e0;
+      }
+
       .map-container {
         width: 100%;
         height: 500px;
@@ -130,9 +163,52 @@
   <body>
     <div class="container">
       <h1>Runtime Customization Demo</h1>
-      <p class="subtitle">Adjust the minimum rating to filter hotels dynamically</p>
+      <p class="subtitle">Adjust the minimum rating and dates to filter hotels dynamically</p>
 
       <div class="controls">
+        <div class="control-group">
+          <label>Check-in & Check-out Dates</label>
+          <div class="date-inputs">
+            <div class="date-input-group">
+              <label
+                for="checkin"
+                style="font-size: 12px; color: #666; margin-bottom: 4px; display: block"
+              >
+                Check-in
+              </label>
+              <input type="date" id="checkin" />
+            </div>
+            <div class="date-input-group">
+              <label
+                for="checkout"
+                style="font-size: 12px; color: #666; margin-bottom: 4px; display: block"
+              >
+                Check-out
+              </label>
+              <input type="date" id="checkout" />
+            </div>
+            <div class="date-input-group" style="display: flex; align-items: flex-end">
+              <button
+                id="searchButton"
+                style="
+                  padding: 8px 24px;
+                  background: #2563eb;
+                  color: white;
+                  border: none;
+                  border-radius: 6px;
+                  font-size: 14px;
+                  font-weight: 600;
+                  cursor: pointer;
+                  height: 38px;
+                  font-family: inherit;
+                "
+              >
+                Go
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div class="control-group">
           <label for="minRating">Minimum Hotel Rating</label>
           <div class="slider-container">
@@ -142,8 +218,13 @@
           <div class="info">
             Only hotels with rating ≥ <span id="ratingText">8.0</span> will be shown
           </div>
-          <div class="loading" id="loading">Updating hotels...</div>
         </div>
+
+        <div class="search-info">
+          Searching for: <strong>1 room</strong> for <strong>2 adults</strong>
+        </div>
+
+        <div class="loading" id="loading">Updating hotels...</div>
       </div>
 
       <div id="map" class="map-container"></div>
