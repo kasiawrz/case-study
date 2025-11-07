@@ -48,9 +48,9 @@ describe('buildWhitelabelUrl', () => {
 
     const urlObj = new URL(url);
     const occupanciesParam = urlObj.searchParams.get('occupancies');
-
+    
     expect(occupanciesParam).toBeTruthy();
-
+    
     // Decode and verify
     const decoded = JSON.parse(atob(occupanciesParam!));
     expect(decoded).toEqual([{ adults: 2, children: [3, 5] }]);

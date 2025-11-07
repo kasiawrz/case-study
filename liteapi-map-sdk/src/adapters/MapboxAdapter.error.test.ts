@@ -50,6 +50,7 @@ describe('MapboxAdapter error handling', () => {
       getPlace: vi.fn(),
       getHotels: vi.fn(),
       getRates: vi.fn(),
+      getMapToken: vi.fn().mockResolvedValue('test-map-token'),
     };
     (ApiClient as any).mockImplementation(() => mockApiClient);
   });

@@ -210,6 +210,7 @@ interface MapConfig {
   checkin?: string; // YYYY-MM-DD
   checkout?: string; // YYYY-MM-DD
   minRating?: number; // 0-10
+  whitelabelUrl?: string; // Custom whitelabel domain (default: 'https://whitelabel.nuitee.link')
 }
 ```
 
@@ -227,6 +228,7 @@ interface MapConfig {
 | checkin          | string (YYYY-MM-DD)                     | No       | today    | Check-in date.                                  |
 | checkout         | string (YYYY-MM-DD)                     | No       | tomorrow | Check-out date.                                 |
 | minRating        | number                                  | No       | —        | Minimum hotel rating (0-10) to filter results.  |
+| whitelabelUrl    | string                                  | No       | 'https://whitelabel.nuitee.link' | Custom whitelabel domain for booking links. |
 
 ### Methods
 

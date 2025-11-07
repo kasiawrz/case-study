@@ -21,6 +21,7 @@ export interface MapConfig {
   checkin?: string;
   checkout?: string;
   minRating?: number; // Minimum hotel rating (0-10)
+  whitelabelUrl?: string; // Custom whitelabel domain (e.g., 'https://your-whitelabel.com')
 }
 
 // LiteAPI place response

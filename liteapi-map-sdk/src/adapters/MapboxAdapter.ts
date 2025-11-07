@@ -26,7 +26,7 @@ class MapboxAdapter {
   }
 
   async initialize(): Promise<void> {
-    // Fetch map token from backend (cached for reuse)
+    // Fetch map token from backend
     if (!this.mapToken) {
       this.mapToken = await this.apiClient.getMapToken();
     }
@@ -342,6 +342,7 @@ class MapboxAdapter {
       adults: this.options.adults || 2,
       children: this.options.children || [],
       currency,
+      whitelabelDomain: this.options.whitelabelUrl,
     });
 
     const ratingHtml = hotel.rating
