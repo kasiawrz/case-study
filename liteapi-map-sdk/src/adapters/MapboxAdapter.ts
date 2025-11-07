@@ -215,14 +215,45 @@ class MapboxAdapter {
       return;
     }
 
+    const currency = this.options.currency || 'USD';
+    const whitelabelUrl = buildWhitelabelUrl({
+      hotelId: hotel.id,
+      placeId: this.options.placeId || '',
+      checkin: this.checkin,
+      checkout: this.checkout,
+      adults: this.options.adults || 2,
+      currency,
+    });
+
+    const ratingHtml = hotel.rating
+      ? `<span style="font-size: 14px;">⭐ ${hotel.rating}</span><br/>`
+      : '';
+
     const popupContent = `
       <div style="padding: 8px;">
         <strong>${hotel.name}</strong><br/>
         <span style="font-size: 12px; color: #666;">${hotel.address}</span><br/>
-        <span style="font-size: 14px;">⭐ ${hotel.rating || 'N/A'}</span><br/>
-        <span style="font-size: 14px; color:rgb(31, 102, 16);">
-          ${hotel.priceInfo?.currency} ${hotel.priceInfo?.price}
-        </span><br />
+        ${ratingHtml}
+        <a href="${whitelabelUrl}" 
+           target="_blank"
+           style="
+             font-size: 14px; 
+             color: rgb(31, 102, 16);
+             text-decoration: none;
+             font-weight: 600;
+             cursor: pointer;
+             display: inline-block;
+             margin: 8px 0;
+             border: none;
+             outline: none;
+           "
+           onmouseover="this.style.textDecoration='underline'"
+           onmouseout="this.style.textDecoration='none'"
+           onfocus="this.style.outline='none'">
+          <span style="font-size: 14px; color:rgb(31, 102, 16);">
+            ${hotel.priceInfo?.currency} ${hotel.priceInfo?.price}
+          </span>
+        </a><br />
         <button style="
           margin-top: 12px;
           padding: 8px 16px;
@@ -256,17 +287,7 @@ class MapboxAdapter {
 
       if (bookBtn) {
         bookBtn.addEventListener('click', () => {
-          const currency = this.options.currency || 'USD';
-          const url = buildWhitelabelUrl({
-            hotelId: hotel.id,
-            placeId: this.options.placeId || '',
-            checkin: this.checkin,
-            checkout: this.checkout,
-            adults: this.options.adults || 2,
-            currency,
-          });
-
-          window.open(url, '_blank');
+          window.open(whitelabelUrl, '_blank');
         });
       }
     });
