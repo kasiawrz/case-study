@@ -57,7 +57,6 @@ describe('Map initialization validation', () => {
         selector: '',
         placeId: 'test',
         apiUrl: 'http://test.com',
-        mapToken: 'test',
       } as any),
     ).rejects.toThrowError('Map selector is required');
   });
@@ -67,7 +66,6 @@ describe('Map initialization validation', () => {
       Map.init({
         selector: '#test-map',
         placeId: 'test',
-        mapToken: 'test',
       } as any),
     ).rejects.toThrowError('apiUrl is required');
   });
@@ -78,7 +76,6 @@ describe('Map initialization validation', () => {
         selector: '#nonexistent',
         placeId: 'test',
         apiUrl: 'http://test.com',
-        mapToken: 'test',
       }),
     ).rejects.toThrow('Container element not found');
   });
@@ -88,7 +85,6 @@ describe('Map initialization validation', () => {
       Map.init({
         selector: '#test-map',
         apiUrl: 'http://test.com',
-        mapToken: 'test',
       } as any),
     ).rejects.toThrow('Location is required');
   });
@@ -100,7 +96,6 @@ describe('Map initialization validation', () => {
         placeId: 'test',
         city: { name: 'Paris', countryCode: 'FR' },
         apiUrl: 'http://test.com',
-        mapToken: 'test',
       } as any),
     ).rejects.toThrow('Multiple location methods provided');
   });
@@ -118,7 +113,6 @@ describe('Map.updateConfig', () => {
       selector: '#test-map',
       placeId: 'test-place',
       apiUrl: 'http://test.com',
-      mapToken: 'test-token',
       currency: 'USD',
       adults: 2,
       children: [],
@@ -208,7 +202,6 @@ describe('Map.updateConfig', () => {
     expect(mockAdapterInstance.options.minRating).toBe(8);
     expect(mockAdapterInstance.options.apiUrl).toBe('http://test.com');
     expect(mockAdapterInstance.options.placeId).toBe('test-place');
-    expect(mockAdapterInstance.options.mapToken).toBe('test-token');
   });
 
   it('should handle multiple sequential updates', async () => {

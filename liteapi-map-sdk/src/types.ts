@@ -13,7 +13,6 @@ export interface MapConfig {
     longitude: number;
   };
 
-  mapToken: string;
   // Optional overrides
   currency?: string;
   adults?: number;

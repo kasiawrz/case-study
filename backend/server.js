@@ -12,6 +12,25 @@ app.use(express.json());
 
 const LITEAPI_BASE_URL = 'https://api.liteapi.travel/v3.0';
 
+// Get map token (public token, safe to expose)
+app.get('/api/map-token', (req, res) => {
+  try {
+    const mapToken = process.env.MAP_TOKEN;
+    if (!mapToken) {
+      return res.status(500).json({
+        error: 'Map token not configured',
+        message: 'Set MAP_TOKEN in your .env file',
+      });
+    }
+    res.json({ token: mapToken });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Failed to fetch map token',
+      details: error.message,
+    });
+  }
+});
+
 // Proxy endpoint for places
 app.get('/api/places/:placeId', async (req, res) => {
   try {

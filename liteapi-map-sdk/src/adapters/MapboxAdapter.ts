@@ -15,6 +15,7 @@ class MapboxAdapter {
   private checkout: string;
   private locationParams: any = {};
   private abortController: AbortController | null = null;
+  private mapToken: string = '';
 
   constructor(container: HTMLElement, options: MapConfig) {
     this.container = container;
@@ -25,8 +26,11 @@ class MapboxAdapter {
   }
 
   async initialize(): Promise<void> {
-    // Provider token (public). If not provided, Map SDK may rely on a global token.
-    mapboxgl.accessToken = this.options.mapToken || '';
+    // Fetch map token from backend (cached for reuse)
+    if (!this.mapToken) {
+      this.mapToken = await this.apiClient.getMapToken();
+    }
+    mapboxgl.accessToken = this.mapToken;
 
     if (this.options.placeId) {
       await this.initializeWithPlaceId();
@@ -158,7 +162,7 @@ class MapboxAdapter {
   ): Promise<any> {
     try {
       const queryCity = encodeURIComponent(cityName);
-      const url = `https://api.mapbox.com/search/geocode/v6/forward?q=${queryCity}&country=${countryCode}&access_token=${this.options.mapToken}`;
+      const url = `https://api.mapbox.com/search/geocode/v6/forward?q=${queryCity}&country=${countryCode}&access_token=${this.mapToken}`;
       const response = await fetch(url, { signal });
 
       if (!response.ok) {

@@ -67,7 +67,6 @@ describe('MapboxAdapter error handling', () => {
         selector: '#test-map',
         apiUrl: 'http://test.com',
         placeId: 'test-place',
-        mapToken: 'test-token',
       });
 
       await expect(adapter.initialize()).rejects.toThrow(
@@ -84,7 +83,6 @@ describe('MapboxAdapter error handling', () => {
         selector: '#test-map',
         apiUrl: 'http://test.com',
         placeId: 'test-place',
-        mapToken: 'test-token',
       });
 
       await expect(adapter.initialize()).rejects.toThrow(
@@ -116,7 +114,6 @@ describe('MapboxAdapter error handling', () => {
         selector: '#test-map',
         apiUrl: 'http://test.com',
         placeId: 'test-place',
-        mapToken: 'test-token',
       });
 
       await adapter.initialize();
@@ -154,7 +151,6 @@ describe('MapboxAdapter error handling', () => {
         selector: '#test-map',
         apiUrl: 'http://test.com',
         placeId: 'test-place',
-        mapToken: 'test-token',
       });
 
       await adapter.initialize();
@@ -187,7 +183,6 @@ describe('MapboxAdapter error handling', () => {
         selector: '#test-map',
         apiUrl: 'http://test.com',
         placeId: 'test-place',
-        mapToken: 'test-token',
       });
 
       await adapter.initialize();

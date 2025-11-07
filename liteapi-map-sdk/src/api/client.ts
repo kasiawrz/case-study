@@ -111,6 +111,44 @@ class ApiClient {
       throw new Error(`Network error while fetching rates: ${error}`);
     }
   }
+
+  async getMapToken(signal?: AbortSignal): Promise<string> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/map-token`, {
+        signal,
+      });
+
+      if (!response.ok) {
+        let errorMessage = 'Failed to fetch map token';
+        try {
+          const errorData = await response.json().catch(() => null);
+          if (errorData?.error || errorData?.message) {
+            errorMessage += `: ${errorData.error || errorData.message}`;
+          } else {
+            errorMessage += ` (HTTP ${response.status}: ${response.statusText})`;
+          }
+        } catch {
+          errorMessage += ` (HTTP ${response.status}: ${response.statusText})`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+      if (!data?.token) {
+        throw new Error('Map token not found in response');
+      }
+
+      return data.token;
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw error;
+      }
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error(`Network error while fetching map token: ${error}`);
+    }
+  }
 }
 
 export default ApiClient;

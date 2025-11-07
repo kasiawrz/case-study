@@ -2,9 +2,6 @@ import LiteAPI from '../src/index';
 import { getToday, getTomorrow } from '../src/utils/dates';
 
 window.addEventListener('DOMContentLoaded', async () => {
-  const mapToken =
-    'pk.eyJ1Ijoia2FzLXNlIiwiYSI6ImNtaGl1ZDdwajBoY2kybHF3ajQ1b2k3ZjkifQ.J7wxCujqrQ77uysYs4zfQw';
-
   // Update date information
   const checkinDate = getToday();
   const checkoutDate = getTomorrow();
@@ -24,7 +21,6 @@ window.addEventListener('DOMContentLoaded', async () => {
       selector: '#map-paris',
       placeId: 'ChIJD7fiBh9u5kcRYJSMaMOCCwQ', // Paris
       apiUrl: 'http://localhost:3001',
-      mapToken,
       // Optional overrides:
       // currency: 'USD',
       // adults: 2,
@@ -48,7 +44,6 @@ window.addEventListener('DOMContentLoaded', async () => {
       //   latitude: 52.3779,
       //   longitude: 4.897,
       // },
-      mapToken,
       apiUrl: 'http://localhost:3001',
     });
   } catch (error) {
