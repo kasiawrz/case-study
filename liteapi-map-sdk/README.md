@@ -166,18 +166,19 @@ await map.updateConfig({
   minRating: 9, // Filter to only 9+ rated hotels
   currency: 'EUR', // Change currency
   adults: 4, // Update occupancy
-  children: [3, 5], // Update children occupancy
+  children: [3, 5], // Two children aged 3 and 5
   checkin: '2025-12-01', // Change dates
   checkout: '2025-12-05',
   guestNationality: 'FR', // Change guest nationality
 });
 ```
 
-You can update these fields:
-- `currency` - Currency code
-- `adults` - Number of adults
-- `children` - Array of child ages (e.g., `[3, 5]`)
-- `guestNationality` - ISO country code
+The `updateConfig()` method accepts a partial configuration object with the following optional fields:
+
+- `currency` - Currency for price display
+- `adults` - Number of adults for occupancy
+- `children` - Ages of children travelling (e.g. `[3, 5]`)
+- `guestNationality` - Guest nationality (ISO country code)
 - `checkin` - Check-in date (YYYY-MM-DD)
 - `checkout` - Check-out date (YYYY-MM-DD)
 - `minRating` - Minimum hotel rating (0-10)
@@ -217,7 +218,7 @@ interface MapConfig {
 | coordinates      | { latitude: number; longitude: number } | One of   | —        | Latitude and longitude                           |
 | currency         | string                                  | No       | 'USD'    | Currency code                                   |
 | adults           | number                                  | No       | 2        | Number of adults                                |
-| children         | number[]                                | No       | []       | Ages of children (e.g., [3, 5])                |
+| children         | number[]                                | No       | []       | Ages of children traveling (e.g., [3, 5])                |
 | guestNationality | string                                  | No       | 'US'     | Guest country code                              |
 | checkin          | string (YYYY-MM-DD)                     | No       | today    | Check-in date                                   |
 | checkout         | string (YYYY-MM-DD)                     | No       | tomorrow | Check-out date                                  |
@@ -231,7 +232,14 @@ Update map configuration at runtime and reload hotels.
 
 **Parameters:**
 
-- `updates` (object): Object with any of the optional fields listed above
+- `updates` (object): Partial configuration object with any of:
+  - `currency?: string` - Currency for price display
+  - `adults?: number` - Number of adults for occupancy
+  - `children?: number[]` - Ages of children travelling (e.g. `[3, 5]`)
+  - `guestNationality?: string` - Guest nationality (ISO country code)
+  - `checkin?: string` - Check-in date (YYYY-MM-DD)
+  - `checkout?: string` - Check-out date (YYYY-MM-DD)
+  - `minRating?: number` - Minimum hotel rating (0-10)
 
 **Returns:** `Promise<void>`
 

@@ -77,8 +77,6 @@ LiteAPI.Map.init({ selector: "#foo" })
 
     // Initialize the map
     await this.adapter.initialize();
-
-    console.log('Map initialized!', this.options);
   }
 
   /**

@@ -159,14 +159,8 @@ class MapboxAdapter {
     try {
       const queryCity = encodeURIComponent(cityName);
       const url = `https://api.mapbox.com/search/geocode/v6/forward?q=${queryCity}&country=${countryCode}&access_token=${this.options.mapToken}`;
-      console.log('url', url);
-      console.log(
-        '🙈   ',
-        'https://api.mapbox.com/search/geocode/v6/forward?q=Amsterdam&country=NL&access_token=pk.eyJ1Ijoia2FzLXNlIiwiYSI6ImNtaGl1ZDdwajBoY2kybHF3ajQ1b2k3ZjkifQ.J7wxCujqrQ77uysYs4zfQw' ===
-          url,
-      );
       const response = await fetch(url, { signal });
-      console.log('🙄 ', response);
+
       if (!response.ok) {
         let errorMessage = `Failed to geocode city "${cityName}, ${countryCode}"`;
         try {
