@@ -47,7 +47,9 @@ class MapboxAdapter {
     const placeData = await this.apiClient.getPlace(this.options.placeId!);
 
     if (!placeData?.data?.viewport) {
-      throw new Error(`Failed to fetch place data for placeId: ${this.options.placeId}`);
+      throw new Error(
+        `Invalid place data received for placeId "${this.options.placeId}": viewport information is missing. Please verify the placeId is correct.`,
+      );
     }
 
     // Extract cityName and countryCode from addressComponents
@@ -80,7 +82,7 @@ class MapboxAdapter {
       boxZoom: true, // Enable box zoom
       dragRotate: true, // Enable drag rotation
       keyboard: true, // Enable keyboard controls
-      touchZoomRotate: true // Enable touch zoom & rotation
+      touchZoomRotate: true, // Enable touch zoom & rotation
     });
   }
 
@@ -242,9 +244,6 @@ class MapboxAdapter {
       offset: 25,
       closeButton: true,
     }).setHTML(popupContent);
-
-    console.log('🥰')
-    console.log('🥰 hotel', hotel)
 
     const marker = new mapboxgl.Marker()
       .setLngLat([hotel.longitude, hotel.latitude])

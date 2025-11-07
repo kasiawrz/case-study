@@ -8,34 +8,94 @@ class ApiClient {
   }
 
   async getPlace(placeId: string): Promise<PlaceData> {
-    const response = await fetch(`${this.baseUrl}/api/places/${placeId}`);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch place: ${response.statusText}`);
+    try {
+      const response = await fetch(`${this.baseUrl}/api/places/${placeId}`);
+
+      if (!response.ok) {
+        let errorMessage = `Failed to fetch place data for "${placeId}"`;
+        try {
+          const errorData = await response.json().catch(() => null);
+          if (errorData?.error || errorData?.message) {
+            errorMessage += `: ${errorData.error || errorData.message}`;
+          } else {
+            errorMessage += ` (HTTP ${response.status}: ${response.statusText})`;
+          }
+        } catch {
+          errorMessage += ` (HTTP ${response.status}: ${response.statusText})`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      return response.json();
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error(`Network error while fetching place data for "${placeId}": ${error}`);
     }
-    return response.json();
   }
 
   async getHotels(params: HotelsParams): Promise<HotelsResponse> {
-    const queryString = new URLSearchParams(params as any).toString();
-    const response = await fetch(`${this.baseUrl}/api/hotels?${queryString}`);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch hotels: ${response.statusText}`);
+    try {
+      const queryString = new URLSearchParams(params as any).toString();
+      const response = await fetch(`${this.baseUrl}/api/hotels?${queryString}`);
+
+      if (!response.ok) {
+        let errorMessage = 'Failed to fetch hotels';
+        try {
+          const errorData = await response.json().catch(() => null);
+          if (errorData?.error || errorData?.message) {
+            errorMessage += `: ${errorData.error || errorData.message}`;
+          } else {
+            errorMessage += ` (HTTP ${response.status}: ${response.statusText})`;
+          }
+        } catch {
+          errorMessage += ` (HTTP ${response.status}: ${response.statusText})`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      return response.json();
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error(`Network error while fetching hotels: ${error}`);
     }
-    return response.json();
   }
 
   async getRates(params: RatesParams): Promise<RatesResponse> {
-    const response = await fetch(`${this.baseUrl}/api/hotels/rates`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(params),
-    });
-    if (!response.ok) {
-      throw new Error(`Failed to fetch rates: ${response.statusText}`);
+    try {
+      const response = await fetch(`${this.baseUrl}/api/hotels/rates`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(params),
+      });
+
+      if (!response.ok) {
+        let errorMessage = 'Failed to fetch hotel rates';
+        try {
+          const errorData = await response.json().catch(() => null);
+          if (errorData?.error || errorData?.message) {
+            errorMessage += `: ${errorData.error || errorData.message}`;
+          } else {
+            errorMessage += ` (HTTP ${response.status}: ${response.statusText})`;
+          }
+        } catch {
+          errorMessage += ` (HTTP ${response.status}: ${response.statusText})`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      return response.json();
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error(`Network error while fetching rates: ${error}`);
     }
-    return response.json();
   }
 }
 
