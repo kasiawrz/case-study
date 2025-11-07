@@ -28,9 +28,12 @@ window.addEventListener('DOMContentLoaded', async () => {
       placeId: 'ChIJD7fiBh9u5kcRYJSMaMOCCwQ', // Paris
       apiUrl: 'http://localhost:3001',
       mapToken,
-      minRating: 8, // Initial minimum rating
+      minRating: 8,
       checkin: today,
       checkout: tomorrow,
+      currency: 'USD',
+      adults: 2,
+      children: [],
     });
   } catch (error) {
     console.error('❌ Map initialization failed:', error);

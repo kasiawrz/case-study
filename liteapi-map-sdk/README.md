@@ -34,11 +34,39 @@ Include the UMD bundle (e.g., from your hosting or a CDN) and access the global 
     const map = await LiteAPI.Map.init({
       selector: '#map',
       apiUrl: 'https://your-backend.example.com',
-      placeId: '...',
+      placeId: 'YOUR_PLACE_ID', // GoogleMaps PlaceId
+      // Optional:
+      // mapToken: 'public_map_token',
+      // currency: 'USD',
+      // adults: 2,
+      // children: [],
+      // guestNationality: 'US',
+      // checkin: 'YYYY-MM-DD',
+      // checkout: 'YYYY-MM-DD',
     });
   })();
 </script>
 ```
+
+## Backend proxy (required)
+
+LiteAPI’s API key must never ship to the browser and their endpoints reject direct client-side calls because of CORS. Configure the SDK to talk to your own proxy service (this repo includes one in `../backend/server.js`) which forwards requests to LiteAPI and injects the `X-API-Key` header from `LITEAPI_KEY`.
+
+The sample proxy exposes:
+
+- `GET /api/places/:placeId`
+- `GET /api/hotels`
+- `POST /api/hotels/rates`
+
+To run it locally:
+
+```bash
+cd ../backend
+npm install
+npm run dev # or npm start
+```
+
+Set `LITEAPI_KEY` in `.env` (or your hosting environment) before starting the server, then point `apiUrl` in `Map.init` to the proxy (e.g. `http://localhost:3001`). This keeps the LiteAPI token server-side and satisfies CORS.
 
 ## Quickstart (copy/paste)
 
@@ -55,6 +83,7 @@ Include the UMD bundle (e.g., from your hosting or a CDN) and access the global 
     // mapToken: 'public_map_token',
     // currency: 'USD',
     // adults: 2,
+    // children: [],
     // guestNationality: 'US',
     // checkin: 'YYYY-MM-DD',
     // checkout: 'YYYY-MM-DD',
@@ -88,7 +117,7 @@ After initialization, the SDK will:
 - Load hotels and rates for the current location.
 - Render markers and a booking link in a popup for each hotel.
 
-**Default values:** If not specified, the SDK uses "today" as check-in date, "tomorrow" as check-out date, and searches for two adults. You can override these defaults by passing `checkin`, `checkout`, and `adults` in the configuration.
+**Default values:** If not specified, the SDK uses "today" as check-in date, "tomorrow" as check-out date, searches for two adults, zero children, and displays prices in USD. You can override these defaults by passing `checkin`, `checkout`, `adults`, `children`, or `currency` in the configuration.
 
 You typically initialize once per container. To remove the map, call the instance's `destroy()` method if the consuming code exposes it in your integration.
 
@@ -110,6 +139,7 @@ await map.updateConfig({
   minRating: 9, // Filter to only 9+ rated hotels
   currency: 'EUR', // Change currency
   adults: 4, // Update occupancy
+  children: [3, 5], // Update children occupancy
   checkin: '2025-12-01', // Change dates
   checkout: '2025-12-05',
   guestNationality: 'FR', // Change guest nationality
@@ -120,6 +150,7 @@ The `updateConfig()` method accepts a partial configuration object with the foll
 
 - `currency` - Currency for price display
 - `adults` - Number of adults for occupancy
+- `children` - Ages of children travelling (e.g. `[3, 5]`)
 - `guestNationality` - Guest nationality (ISO country code)
 - `checkin` - Check-in date (YYYY-MM-DD)
 - `checkout` - Check-out date (YYYY-MM-DD)
@@ -143,26 +174,28 @@ interface MapConfig {
   // Optional
   currency?: string;
   adults?: number;
+  children?: number[];
   guestNationality?: string;
   checkin?: string; // YYYY-MM-DD
   checkout?: string; // YYYY-MM-DD
 }
 ```
 
-| Option           | Type                                    | Required | Default  | Description                                        |
-| ---------------- | --------------------------------------- | -------- | -------- | -------------------------------------------------- |
-| selector         | string                                  | Yes      | —        | CSS selector of the target container.              |
-| apiUrl           | string                                  | Yes      | —        | Base URL of your backend that the SDK calls.       |
-| placeId          | string                                  | One of   | —        | Place identifier; centers using place viewport.    |
-| city             | { name: string; countryCode: string }   | One of   | —        | City-based location.                               |
-| coordinates      | { latitude: number; longitude: number } | One of   | —        | Coordinate-based location.                         |
-| mapToken         | string                                  | No       | —        | Public token for displaying the map. |
-| currency         | string                                  | No       | 'USD'    | Currency for price display.                        |
-| adults           | number                                  | No       | 2        | Occupancy for rate queries.                        |
-| guestNationality | string                                  | No       | 'US'     | Guest nationality for rate queries.                |
-| checkin          | string (YYYY-MM-DD)                     | No       | today    | Check-in date.                                     |
-| checkout         | string (YYYY-MM-DD)                     | No       | tomorrow | Check-out date.                                    |
-| minRating        | number                                  | No       | —        | Minimum hotel rating (0-10) to filter results.     |
+| Option           | Type                                    | Required | Default  | Description                                     |
+| ---------------- | --------------------------------------- | -------- | -------- | ----------------------------------------------- |
+| selector         | string                                  | Yes      | —        | CSS selector of the target container.           |
+| apiUrl           | string                                  | Yes      | —        | Base URL of your backend that the SDK calls.    |
+| placeId          | string                                  | One of   | —        | Place identifier; centers using place viewport. |
+| city             | { name: string; countryCode: string }   | One of   | —        | City-based location.                            |
+| coordinates      | { latitude: number; longitude: number } | One of   | —        | Coordinate-based location.                      |
+| mapToken         | string                                  | No       | —        | Public token for displaying the map.            |
+| currency         | string                                  | No       | 'USD'    | Currency for price display.                     |
+| adults           | number                                  | No       | 2        | Occupancy for rate queries.                     |
+| children         | number[]                                | No       | []       | Ages of children travelling.                    |
+| guestNationality | string                                  | No       | 'US'     | Guest nationality for rate queries.             |
+| checkin          | string (YYYY-MM-DD)                     | No       | today    | Check-in date.                                  |
+| checkout         | string (YYYY-MM-DD)                     | No       | tomorrow | Check-out date.                                 |
+| minRating        | number                                  | No       | —        | Minimum hotel rating (0-10) to filter results.  |
 
 ### Methods
 
@@ -175,6 +208,7 @@ Update map configuration at runtime and reload hotels.
 - `updates` (object): Partial configuration object with any of:
   - `currency?: string` - Currency for price display
   - `adults?: number` - Number of adults for occupancy
+- `children?: number[]` - Ages of children travelling (e.g. `[3, 5]`)
   - `guestNationality?: string` - Guest nationality (ISO country code)
   - `checkin?: string` - Check-in date (YYYY-MM-DD)
   - `checkout?: string` - Check-out date (YYYY-MM-DD)

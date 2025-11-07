@@ -25,9 +25,10 @@ window.addEventListener('DOMContentLoaded', async () => {
       placeId: 'ChIJD7fiBh9u5kcRYJSMaMOCCwQ', // Paris
       apiUrl: 'http://localhost:3001',
       mapToken,
-      // Optional overrides (provider-agnostic):
+      // Optional overrides:
       // currency: 'USD',
       // adults: 2,
+      // children: [3, 5],
       // guestNationality: 'US',
     });
   } catch (error) {
