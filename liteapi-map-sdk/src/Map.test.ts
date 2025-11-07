@@ -5,7 +5,11 @@ import Map from './Map';
 vi.mock('mapbox-gl', () => ({
   default: {
     accessToken: '',
-    Map: vi.fn(),
+    Map: vi.fn(() => ({
+      on: vi.fn((event, callback) => {
+        if (event === 'load') callback();
+      }),
+    })),
     NavigationControl: vi.fn(),
     Marker: vi.fn(() => ({
       setLngLat: vi.fn().mockReturnThis(),
@@ -47,58 +51,58 @@ describe('Map initialization validation', () => {
     document.body.innerHTML = '<div id="test-map"></div>';
   });
 
-  it('should throw error when selector is missing', () => {
-    expect(() => {
+  it('should throw error when selector is missing', async () => {
+    await expect(
       Map.init({
         selector: '',
         placeId: 'test',
         apiUrl: 'http://test.com',
         mapToken: 'test',
-      } as any);
-    }).toThrow('Map selector is required');
+      } as any)
+    ).rejects.toThrowError('Map selector is required');
   });
 
-  it('should throw error when apiUrl is missing', () => {
-    expect(() => {
+  it('should throw error when apiUrl is missing', async () => {
+    await expect(
       Map.init({
         selector: '#test-map',
         placeId: 'test',
         mapToken: 'test',
-      } as any);
-    }).toThrow('apiUrl is required');
+      } as any)
+    ).rejects.toThrowError('apiUrl is required');
   });
 
-  it('should throw error when element not found', () => {
-    expect(() => {
+  it('should throw error when element not found', async () => {
+    await expect(
       Map.init({
         selector: '#nonexistent',
         placeId: 'test',
         apiUrl: 'http://test.com',
         mapToken: 'test',
-      });
-    }).toThrow('Container element not found');
+      }),
+    ).rejects.toThrow('Container element not found');
   });
 
-  it('should throw error when no location is provided', () => {
-    expect(() => {
+  it('should throw error when no location is provided', async () => {
+    await expect(
       Map.init({
         selector: '#test-map',
         apiUrl: 'http://test.com',
         mapToken: 'test',
-      } as any);
-    }).toThrow('Location is required');
+      } as any),
+    ).rejects.toThrow('Location is required');
   });
 
-  it('should throw error when multiple locations are provided', () => {
-    expect(() => {
+  it('should throw error when multiple locations are provided', async () => {
+    await expect(
       Map.init({
         selector: '#test-map',
         placeId: 'test',
         city: { name: 'Paris', countryCode: 'FR' },
         apiUrl: 'http://test.com',
         mapToken: 'test',
-      } as any);
-    }).toThrow('Multiple location methods provided');
+      } as any),
+    ).rejects.toThrow('Multiple location methods provided');
   });
 });
 
@@ -110,7 +114,7 @@ describe('Map.updateConfig', () => {
     mockAdapterInstance = null;
 
     // Create a map instance
-    mapInstance = Map.init({
+    mapInstance = await Map.init({
       selector: '#test-map',
       placeId: 'test-place',
       apiUrl: 'http://test.com',

@@ -4,7 +4,7 @@ import { getToday, getTomorrow } from '../src/utils/dates';
 let mapInstance: any = null;
 let updateTimeout: NodeJS.Timeout | null = null;
 
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
   const mapToken =
     'pk.eyJ1Ijoia2FzLXNlIiwiYSI6ImNtaGl1ZDdwajBoY2kybHF3ajQ1b2k3ZjkifQ.J7wxCujqrQ77uysYs4zfQw';
 
@@ -23,7 +23,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Initialize map
   try {
-    mapInstance = LiteAPI.Map.init({
+    mapInstance = await LiteAPI.Map.init({
       selector: '#map',
       placeId: 'ChIJD7fiBh9u5kcRYJSMaMOCCwQ', // Paris
       apiUrl: 'http://localhost:3001',

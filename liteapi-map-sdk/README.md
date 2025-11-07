@@ -30,11 +30,13 @@ Include the UMD bundle (e.g., from your hosting or a CDN) and access the global 
 <script src="/path/to/liteapi-map-sdk.umd.js"></script>
 <script>
   // window.LiteAPI is available
-  LiteAPI.Map.init({
-    selector: '#map',
-    apiUrl: 'https://your-backend.example.com',
-    placeId: '...',
-  });
+  (async () => {
+    const map = await LiteAPI.Map.init({
+      selector: '#map',
+      apiUrl: 'https://your-backend.example.com',
+      placeId: '...',
+    });
+  })();
 </script>
 ```
 
@@ -45,7 +47,7 @@ Include the UMD bundle (e.g., from your hosting or a CDN) and access the global 
 <script type="module">
   import LiteAPI from 'liteapi-map-sdk';
 
-  LiteAPI.Map.init({
+  const map = await LiteAPI.Map.init({
     selector: '#map',
     apiUrl: 'https://your-backend.example.com',
     placeId: 'YOUR_PLACE_ID', // GoogleMaps PlaceId
@@ -67,7 +69,7 @@ Use `LiteAPI.Map.init` to create and render a map into a target DOM container. T
 ```ts
 import LiteAPI from 'liteapi-map-sdk';
 
-const map = LiteAPI.Map.init({
+const map = await LiteAPI.Map.init({
   selector: '#map',
   apiUrl: 'https://your-backend.example.com',
   placeId: 'YOUR_PLACE_ID',
@@ -86,6 +88,8 @@ After initialization, the SDK will:
 - Load hotels and rates for the current location.
 - Render markers and a booking link in a popup for each hotel.
 
+**Default values:** If not specified, the SDK uses "today" as check-in date, "tomorrow" as check-out date, and searches for two adults. You can override these defaults by passing `checkin`, `checkout`, and `adults` in the configuration.
+
 You typically initialize once per container. To remove the map, call the instance's `destroy()` method if the consuming code exposes it in your integration.
 
 ### Runtime Customization
@@ -93,7 +97,7 @@ You typically initialize once per container. To remove the map, call the instanc
 You can update the map configuration at runtime using `updateConfig()`. This will reload hotels with the new settings:
 
 ```ts
-const map = LiteAPI.Map.init({
+const map = await LiteAPI.Map.init({
   selector: '#map',
   apiUrl: 'https://your-backend.example.com',
   placeId: 'YOUR_PLACE_ID',
@@ -152,7 +156,7 @@ interface MapConfig {
 | placeId          | string                                  | One of   | —        | Place identifier; centers using place viewport.    |
 | city             | { name: string; countryCode: string }   | One of   | —        | City-based location.                               |
 | coordinates      | { latitude: number; longitude: number } | One of   | —        | Coordinate-based location.                         |
-| mapToken         | string                                  | No       | —        | Public token for displaying the map (if required). |
+| mapToken         | string                                  | No       | —        | Public token for displaying the map. |
 | currency         | string                                  | No       | 'USD'    | Currency for price display.                        |
 | adults           | number                                  | No       | 2        | Occupancy for rate queries.                        |
 | guestNationality | string                                  | No       | 'US'     | Guest nationality for rate queries.                |

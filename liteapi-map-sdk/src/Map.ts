@@ -18,9 +18,9 @@ LiteAPI.Map.init({ selector: "#foo" })
    * @returns Map instance
    */
 
-  static init(config: MapConfig): Map {
+  static async init(config: MapConfig): Promise<Map> {
     const instance = new Map(config);
-    instance._initialize();
+    await instance._initialize();
     return instance;
   }
 

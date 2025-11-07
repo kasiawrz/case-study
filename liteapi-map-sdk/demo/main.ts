@@ -1,7 +1,7 @@
 import LiteAPI from '../src/index';
 import { getToday, getTomorrow } from '../src/utils/dates';
 
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
   const mapToken =
     'pk.eyJ1Ijoia2FzLXNlIiwiYSI6ImNtaGl1ZDdwajBoY2kybHF3ajQ1b2k3ZjkifQ.J7wxCujqrQ77uysYs4zfQw';
 
@@ -20,7 +20,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Map 1: Paris
   try {
-    const parisMap = LiteAPI.Map.init({
+    const parisMap = await LiteAPI.Map.init({
       selector: '#map-paris',
       placeId: 'ChIJD7fiBh9u5kcRYJSMaMOCCwQ', // Paris
       apiUrl: 'http://localhost:3001',
@@ -36,7 +36,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Map 2: AMS
   try {
-    const amsMap = LiteAPI.Map.init({
+    const amsMap = await LiteAPI.Map.init({
       selector: '#map-ams',
       placeId: 'ChIJVXealLU_xkcRja_At0z9AGY', // AMS
       // city: {
