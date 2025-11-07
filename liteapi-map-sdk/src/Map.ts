@@ -3,7 +3,7 @@ import MapboxAdapter from './adapters/MapboxAdapter';
 
 class Map {
   private options: MapConfig;
-  private adapter: any = null; // TODO
+  private adapter: MapboxAdapter | null = null;
   private container: HTMLElement | null = null;
 
   constructor(options: MapConfig) {
@@ -89,7 +89,12 @@ LiteAPI.Map.init({ selector: "#foo" })
     updates: Partial<
       Pick<
         MapConfig,
-        'currency' | 'adults' | 'guestNationality' | 'checkin' | 'checkout' | 'minRating'
+        | 'currency'
+        | 'adults'
+        | 'guestNationality'
+        | 'checkin'
+        | 'checkout'
+        | 'minRating'
       >
     >,
   ): Promise<void> {
@@ -119,6 +124,11 @@ LiteAPI.Map.init({ selector: "#foo" })
     if (this.adapter && typeof this.adapter.destroy === 'function') {
       this.adapter.destroy();
     }
+
+    this.adapter = null;
+    this.container = null;
+    this.options = null as any;
+
     console.log('Map destroyed');
   }
 }

@@ -7,9 +7,11 @@ class ApiClient {
     this.baseUrl = baseUrl;
   }
 
-  async getPlace(placeId: string): Promise<PlaceData> {
+  async getPlace(placeId: string, signal?: AbortSignal): Promise<PlaceData> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/places/${placeId}`);
+      const response = await fetch(`${this.baseUrl}/api/places/${placeId}`, {
+        signal,
+      });
 
       if (!response.ok) {
         let errorMessage = `Failed to fetch place data for "${placeId}"`;
@@ -28,6 +30,9 @@ class ApiClient {
 
       return response.json();
     } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw error;
+      }
       if (error instanceof Error) {
         throw error;
       }
@@ -35,10 +40,12 @@ class ApiClient {
     }
   }
 
-  async getHotels(params: HotelsParams): Promise<HotelsResponse> {
+  async getHotels(params: HotelsParams, signal?: AbortSignal): Promise<HotelsResponse> {
     try {
       const queryString = new URLSearchParams(params as any).toString();
-      const response = await fetch(`${this.baseUrl}/api/hotels?${queryString}`);
+      const response = await fetch(`${this.baseUrl}/api/hotels?${queryString}`, {
+        signal,
+      });
 
       if (!response.ok) {
         let errorMessage = 'Failed to fetch hotels';
@@ -57,6 +64,9 @@ class ApiClient {
 
       return response.json();
     } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw error;
+      }
       if (error instanceof Error) {
         throw error;
       }
@@ -64,7 +74,7 @@ class ApiClient {
     }
   }
 
-  async getRates(params: RatesParams): Promise<RatesResponse> {
+  async getRates(params: RatesParams, signal?: AbortSignal): Promise<RatesResponse> {
     try {
       const response = await fetch(`${this.baseUrl}/api/hotels/rates`, {
         method: 'POST',
@@ -72,6 +82,7 @@ class ApiClient {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(params),
+        signal,
       });
 
       if (!response.ok) {
@@ -91,6 +102,9 @@ class ApiClient {
 
       return response.json();
     } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw error;
+      }
       if (error instanceof Error) {
         throw error;
       }

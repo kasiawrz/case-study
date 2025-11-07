@@ -58,7 +58,7 @@ describe('Map initialization validation', () => {
         placeId: 'test',
         apiUrl: 'http://test.com',
         mapToken: 'test',
-      } as any)
+      } as any),
     ).rejects.toThrowError('Map selector is required');
   });
 
@@ -68,7 +68,7 @@ describe('Map initialization validation', () => {
         selector: '#test-map',
         placeId: 'test',
         mapToken: 'test',
-      } as any)
+      } as any),
     ).rejects.toThrowError('apiUrl is required');
   });
 

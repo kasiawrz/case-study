@@ -14,6 +14,7 @@ class MapboxAdapter {
   private checkin: string;
   private checkout: string;
   private locationParams: any = {};
+  private abortController: AbortController | null = null;
 
   constructor(container: HTMLElement, options: MapConfig) {
     this.container = container;
@@ -39,12 +40,24 @@ class MapboxAdapter {
       await this.loadHotels();
     });
 
-    // Add navigation controls (zoom, rotation)
+    // Add navigation controls
     this.map!.addControl(new mapboxgl.NavigationControl(), 'top-right');
   }
 
   private async initializeWithPlaceId(): Promise<void> {
-    const placeData = await this.apiClient.getPlace(this.options.placeId!);
+    // Create AbortController for initialization
+    if (this.abortController) {
+      this.abortController.abort();
+    }
+    this.abortController = new AbortController();
+    const signal = this.abortController.signal;
+
+    const placeData = await this.apiClient.getPlace(this.options.placeId!, signal);
+
+    // Check if request was aborted
+    if (signal.aborted) {
+      return;
+    }
 
     if (!placeData?.data?.viewport) {
       throw new Error(
@@ -118,30 +131,57 @@ class MapboxAdapter {
   }
 
   async loadHotels(): Promise<void> {
+    if (this.abortController) {
+      this.abortController.abort();
+    }
+
+    this.abortController = new AbortController();
+    const signal = this.abortController.signal;
+
     try {
       // Fetch hotels (with coordinates)
-      const hotelsData = await this.apiClient.getHotels({
-        ...this.locationParams,
-        limit: 20,
-        minRating: this.options.minRating,
-      });
+      const hotelsData = await this.apiClient.getHotels(
+        {
+          ...this.locationParams,
+          limit: 200,
+          minRating: this.options.minRating,
+        },
+        signal,
+      );
+
+      if (signal.aborted) {
+        return;
+      }
 
       // Resolve runtime defaults
       const adults = this.options.adults || 2;
+      const children = this.options.children || [];
       const currency = this.options.currency || 'USD';
       const guestNationality = this.options.guestNationality || 'US';
 
       // Fetch hotel rates (prices)
-      const ratesData = await this.apiClient.getRates({
-        ...this.locationParams,
-        occupancies: [{ adults }],
-        checkin: this.checkin,
-        checkout: this.checkout,
-        guestNationality,
-        currency,
-        maxRatesPerHotel: 1,
-        limit: 20,
-      });
+      const ratesData = await this.apiClient.getRates(
+        {
+          ...this.locationParams,
+          occupancies: [
+            {
+              adults,
+              ...(children.length > 0 ? { children } : {}),
+            },
+          ],
+          checkin: this.checkin,
+          checkout: this.checkout,
+          guestNationality,
+          currency,
+          maxRatesPerHotel: 1,
+          limit: 200,
+        },
+        signal,
+      );
+
+      if (signal.aborted) {
+        return;
+      }
 
       if (!hotelsData?.data || !ratesData?.data) {
         console.warn('No hotel or rates data received');
@@ -159,6 +199,9 @@ class MapboxAdapter {
 
       console.log(`✅ Loaded ${hotelsWithPrices.length} hotels`);
     } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        return;
+      }
       console.error('Failed to load hotels:', error);
     }
   }
@@ -222,6 +265,7 @@ class MapboxAdapter {
       checkin: this.checkin,
       checkout: this.checkout,
       adults: this.options.adults || 2,
+      children: this.options.children || [],
       currency,
     });
 
@@ -301,10 +345,19 @@ class MapboxAdapter {
   }
 
   destroy(): void {
+    if (this.abortController) {
+      this.abortController.abort();
+      this.abortController = null;
+    }
+
+    this.clearMarkers();
+
     if (this.map) {
       this.map.remove();
       this.map = null;
     }
+
+    this.locationParams = {};
   }
 }
 

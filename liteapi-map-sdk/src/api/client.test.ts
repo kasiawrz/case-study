@@ -33,7 +33,8 @@ describe('ApiClient', () => {
       const result = await apiClient.getPlace('test-place-id');
 
       expect(result).toEqual(mockPlaceData);
-      expect(global.fetch).toHaveBeenCalledWith(`${mockBaseUrl}/api/places/test-place-id`);
+      expect(global.fetch).toHaveBeenCalledWith(`${mockBaseUrl}/api/places/test-place-id`, {
+      });
     });
 
     it('should throw error with status code when request fails', async () => {
@@ -107,6 +108,7 @@ describe('ApiClient', () => {
       expect(result).toEqual(mockHotelsData);
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining(`${mockBaseUrl}/api/hotels?`),
+        expect.objectContaining({ signal: undefined }),
       );
     });
 
@@ -189,6 +191,7 @@ describe('ApiClient', () => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(params),
+          signal: undefined,
         }),
       );
     });
