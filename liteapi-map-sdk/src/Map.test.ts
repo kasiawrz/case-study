@@ -29,12 +29,12 @@ vi.mock('./adapters/MapboxAdapter', () => ({
     checkin: string = '';
     checkout: string = '';
     loadHotels = vi.fn().mockResolvedValue(undefined);
-    
+
     constructor(container: HTMLElement, options: any) {
       this.options = { ...options };
       mockAdapterInstance = this;
     }
-    
+
     async initialize() {
       return Promise.resolve();
     }
@@ -104,11 +104,11 @@ describe('Map initialization validation', () => {
 
 describe('Map.updateConfig', () => {
   let mapInstance: Map;
-  
+
   beforeEach(async () => {
     document.body.innerHTML = '<div id="test-map"></div>';
     mockAdapterInstance = null;
-    
+
     // Create a map instance
     mapInstance = Map.init({
       selector: '#test-map',
@@ -119,10 +119,10 @@ describe('Map.updateConfig', () => {
       adults: 2,
       minRating: 8,
     });
-    
+
     // Wait for async initialization to complete
-    await new Promise(resolve => setTimeout(resolve, 10));
-    
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
     // Reset loadHotels call count from initialization
     if (mockAdapterInstance) {
       mockAdapterInstance.loadHotels.mockClear();
@@ -131,7 +131,7 @@ describe('Map.updateConfig', () => {
 
   it('should update currency and reload hotels', async () => {
     await mapInstance.updateConfig({ currency: 'EUR' });
-    
+
     expect(mockAdapterInstance).toBeDefined();
     expect(mockAdapterInstance.options.currency).toBe('EUR');
     expect(mockAdapterInstance.loadHotels).toHaveBeenCalledTimes(1);
@@ -139,35 +139,35 @@ describe('Map.updateConfig', () => {
 
   it('should update adults and reload hotels', async () => {
     await mapInstance.updateConfig({ adults: 4 });
-    
+
     expect(mockAdapterInstance.options.adults).toBe(4);
     expect(mockAdapterInstance.loadHotels).toHaveBeenCalledTimes(1);
   });
 
   it('should update minRating and reload hotels', async () => {
     await mapInstance.updateConfig({ minRating: 9 });
-    
+
     expect(mockAdapterInstance.options.minRating).toBe(9);
     expect(mockAdapterInstance.loadHotels).toHaveBeenCalledTimes(1);
   });
 
   it('should update guestNationality and reload hotels', async () => {
     await mapInstance.updateConfig({ guestNationality: 'FR' });
-    
+
     expect(mockAdapterInstance.options.guestNationality).toBe('FR');
     expect(mockAdapterInstance.loadHotels).toHaveBeenCalledTimes(1);
   });
 
   it('should update checkin date and reload hotels', async () => {
     await mapInstance.updateConfig({ checkin: '2025-12-01' });
-    
+
     expect(mockAdapterInstance.checkin).toBe('2025-12-01');
     expect(mockAdapterInstance.loadHotels).toHaveBeenCalledTimes(1);
   });
 
   it('should update checkout date and reload hotels', async () => {
     await mapInstance.updateConfig({ checkout: '2025-12-05' });
-    
+
     expect(mockAdapterInstance.checkout).toBe('2025-12-05');
     expect(mockAdapterInstance.loadHotels).toHaveBeenCalledTimes(1);
   });
@@ -179,7 +179,7 @@ describe('Map.updateConfig', () => {
       minRating: 9,
       guestNationality: 'UK',
     });
-    
+
     expect(mockAdapterInstance.options.currency).toBe('GBP');
     expect(mockAdapterInstance.options.adults).toBe(3);
     expect(mockAdapterInstance.options.minRating).toBe(9);
@@ -189,7 +189,7 @@ describe('Map.updateConfig', () => {
 
   it('should preserve existing options when updating', async () => {
     await mapInstance.updateConfig({ currency: 'EUR' });
-    
+
     // Original options should be preserved
     expect(mockAdapterInstance.options.minRating).toBe(8);
     expect(mockAdapterInstance.options.apiUrl).toBe('http://test.com');
@@ -201,7 +201,7 @@ describe('Map.updateConfig', () => {
     await mapInstance.updateConfig({ currency: 'EUR' });
     await mapInstance.updateConfig({ minRating: 9 });
     await mapInstance.updateConfig({ adults: 4 });
-    
+
     expect(mockAdapterInstance.options.currency).toBe('EUR');
     expect(mockAdapterInstance.options.minRating).toBe(9);
     expect(mockAdapterInstance.options.adults).toBe(4);
@@ -210,7 +210,7 @@ describe('Map.updateConfig', () => {
 
   it('should handle empty update object gracefully', async () => {
     await mapInstance.updateConfig({});
-    
+
     // Should still call loadHotels even with no changes
     expect(mockAdapterInstance.loadHotels).toHaveBeenCalledTimes(1);
   });

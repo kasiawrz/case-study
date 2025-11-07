@@ -4,7 +4,7 @@ import type { HotelsResponse, RatesResponse, Hotel } from '../types';
 // Extract the merge logic to test it separately
 function mergeHotelsWithRates(
   hotels: HotelsResponse['data'],
-  rates: RatesResponse['data']
+  rates: RatesResponse['data'],
 ): Hotel[] {
   const priceMap = new Map<string, { price: number; currency: string }>();
 
