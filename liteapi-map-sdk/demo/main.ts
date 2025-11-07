@@ -1,9 +1,22 @@
 import LiteAPI from '../src/index';
+import { getToday, getTomorrow } from '../src/utils/dates';
 
 window.addEventListener('DOMContentLoaded', () => {
   const mapToken =
     'pk.eyJ1Ijoia2FzLXNlIiwiYSI6ImNtaGl1ZDdwajBoY2kybHF3ajQ1b2k3ZjkifQ.J7wxCujqrQ77uysYs4zfQw';
-  console.log('Demo starting...');
+
+  // Update date information
+  const checkinDate = getToday();
+  const checkoutDate = getTomorrow();
+  const checkinElement = document.getElementById('checkin-date');
+  const checkoutElement = document.getElementById('checkout-date');
+
+  if (checkinElement) {
+    checkinElement.textContent = checkinDate;
+  }
+  if (checkoutElement) {
+    checkoutElement.textContent = checkoutDate;
+  }
 
   // Map 1: Paris
   try {
