@@ -1,7 +1,8 @@
 import LiteAPI from '../src/index';
 
 window.addEventListener('DOMContentLoaded', () => {
-  const mapToken = 'pk.eyJ1Ijoia2FzLXNlIiwiYSI6ImNtaGl1ZDdwajBoY2kybHF3ajQ1b2k3ZjkifQ.J7wxCujqrQ77uysYs4zfQw'
+  const mapToken =
+    'pk.eyJ1Ijoia2FzLXNlIiwiYSI6ImNtaGl1ZDdwajBoY2kybHF3ajQ1b2k3ZjkifQ.J7wxCujqrQ77uysYs4zfQw';
   console.log('Demo starting...');
 
   // Map 1: Paris
