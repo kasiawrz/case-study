@@ -61,7 +61,6 @@ The sample proxy exposes:
 - `GET /api/places/:placeId`
 - `GET /api/hotels`
 - `POST /api/hotels/rates`
-- `GET /api/map-token` - Returns the map token
 
 To run it locally:
 
@@ -71,7 +70,9 @@ npm install
 npm run dev # or npm start
 ```
 
-Set `LITEAPI_KEY` in `.env` (or your hosting environment) before starting the server, then point `apiUrl` in `Map.init` to the proxy (e.g. `http://localhost:3001`). This keeps the LiteAPI token server-side and satisfies CORS.
+1. Add `LITEAPI_KEY` to your `.env` file
+2. Start the backend server
+3. Point `apiUrl` in your map config to the server (e.g. `http://localhost:3001`)
 
 ## Quickstart (copy/paste)
 
@@ -97,38 +98,37 @@ Set `LITEAPI_KEY` in `.env` (or your hosting environment) before starting the se
 
 ## Initialization
 
-Use `LiteAPI.Map.init` to create and render a map into a target DOM container. The map will be centered using the bounding box returned by the LiteAPI Places endpoint for the provided `placeId` (or by the alternative location you provide).
+Create a map by providing a location. You can use one of three ways:
 
 **Option 1: Place ID**
 
 ```ts
-import LiteAPI from 'liteapi-map-sdk';
+const map = await LiteAPI.Map.init({
+  selector: '#map',
+  apiUrl: 'https://your-backend.example.com',
+  placeId: 'ChIJD7fiBh9u5kcRYJSMaMOCCwQ', // Paris
+});
+```
 
+**Option 2: City name**
+
+```ts
 const map = await LiteAPI.Map.init({
   selector: '#map',
   apiUrl: 'https://your-backend.example.com',
   city: { name: 'Paris', countryCode: 'FR' },
 });
+```
 
-// Using city name
-const map2 = await LiteAPI.Map.init({
-  selector: '#map2',
-  apiUrl: 'https://your-backend.example.com',
-  city: { name: 'Paris', countryCode: 'FR' },
-});
+**Option 3: Coordinates**
 
-// Using coordinates
-const map3 = await LiteAPI.Map.init({
-  selector: '#map3',
+```ts
+const map = await LiteAPI.Map.init({
+  selector: '#map',
   apiUrl: 'https://your-backend.example.com',
   coordinates: { latitude: 48.8566, longitude: 2.3522 },
 });
 ```
-
-- `selector`: CSS selector for the container where the map should render.
-- `apiUrl`: Base URL of your application's backend that exposes the required endpoints.
-- One of the location strategies is required (see API Reference below).
-- The map token is automatically fetched from your backend (`/api/map-token` endpoint)
 
 ## Usage
 
@@ -202,7 +202,7 @@ interface MapConfig {
   placeId?: string;
   city?: { name: string; countryCode: string };
   coordinates?: { latitude: number; longitude: number };
-  // Optional
+  // Optional:
   currency?: string;
   adults?: number;
   children?: number[];
@@ -214,21 +214,21 @@ interface MapConfig {
 }
 ```
 
-| Option           | Type                                    | Required | Default  | Description                                     |
-| ---------------- | --------------------------------------- | -------- | -------- | ----------------------------------------------- |
-| selector         | string                                  | Yes      | —        | CSS selector of the target container.           |
-| apiUrl           | string                                  | Yes      | —        | Base URL of your backend that the SDK calls.    |
-| placeId          | string                                  | One of   | —        | Place identifier; centers using place viewport. |
-| city             | { name: string; countryCode: string }   | One of   | —        | City-based location.                            |
-| coordinates      | { latitude: number; longitude: number } | One of   | —        | Coordinate-based location.                      |
-| currency         | string                                  | No       | 'USD'    | Currency for price display.                     |
-| adults           | number                                  | No       | 2        | Occupancy for rate queries.                     |
-| children         | number[]                                | No       | []       | Ages of children travelling.                    |
-| guestNationality | string                                  | No       | 'US'     | Guest nationality for rate queries.             |
-| checkin          | string (YYYY-MM-DD)                     | No       | today    | Check-in date.                                  |
-| checkout         | string (YYYY-MM-DD)                     | No       | tomorrow | Check-out date.                                 |
-| minRating        | number                                  | No       | —        | Minimum hotel rating (0-10) to filter results.  |
-| whitelabelUrl    | string                                  | No       | 'https://whitelabel.nuitee.link' | Custom whitelabel domain for booking links. |
+| Option           | Type                                    | Required | Default  | Description                                   |
+| ---------------- | --------------------------------------- | -------- | -------- | --------------------------------------------- |
+| selector         | string                                  | Yes      | —        | CSS selector for the map container            |
+| apiUrl           | string                                  | Yes      | —        | Your backend URL                              |
+| mapToken         | string                                  | Yes      | —        | Map provider token                            |
+| placeId          | string                                  | One of   | —        | Google Maps Place ID                          |
+| city             | { name: string; countryCode: string }   | One of   | —        | City name and country code (e.g., 'FR', 'US') |
+| coordinates      | { latitude: number; longitude: number } | One of   | —        | Latitude and longitude                        |
+| currency         | string                                  | No       | 'USD'    | Currency code                                 |
+| adults           | number                                  | No       | 2        | Number of adults                              |
+| children         | number[]                                | No       | []       | Ages of children traveling (e.g., [3, 5])     |
+| guestNationality | string                                  | No       | 'US'     | Guest country code                            |
+| checkin          | string (YYYY-MM-DD)                     | No       | today    | Check-in date                                 |
+| checkout         | string (YYYY-MM-DD)                     | No       | tomorrow | Check-out date                                |
+| minRating        | number                                  | No       | —        | Minimum hotel rating (0-10)                   |
 
 ### Methods
 

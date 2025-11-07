@@ -77,7 +77,6 @@ export interface HotelsResponse {
 }
 
 // Parameters for fetching rates (POST /api/hotels/rates)
-// TO DO - chouble check LOCATION param
 export interface RatesParams {
   occupancies: Array<{ adults: number; children?: number[] }>;
   checkin: string;

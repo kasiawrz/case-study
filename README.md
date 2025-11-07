@@ -34,3 +34,10 @@ Given the time constraints, I prioritized delivering a working solution first, t
 - **Code style**: I'm flexible with conventions and will happily adapt to team standards for naming, formatting and structure.
 
 The goal was to demonstrate problem-solving ability and deliver a functional SDK within the deadline.
+
+## "Creative freedom"
+
+Although the brief specified initialisation via `placeId`, I also added options to:
+
+- Initialise the map using a city name (via Mapbox Geocoding API)
+- Or coordinates (latitude & longitude)

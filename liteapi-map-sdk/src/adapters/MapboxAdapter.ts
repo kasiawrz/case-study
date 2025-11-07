@@ -5,6 +5,23 @@ import ApiClient from '../api/client';
 import { getToday, getTomorrow } from '../utils/dates';
 import { buildWhitelabelUrl } from '../utils/whitelabel';
 
+// Constants
+const DEFAULT_ADULTS = 2;
+const DEFAULT_CURRENCY = 'USD';
+const DEFAULT_GUEST_NATIONALITY = 'US';
+const DEFAULT_CHILDREN: number[] = [];
+const HOTEL_LIMIT = 20;
+
+// Map configuration
+const MAP_STYLE = 'mapbox://styles/mapbox/streets-v12';
+const MAP_OPTIONS = {
+  scrollZoom: false,
+  boxZoom: true,
+  dragRotate: true,
+  keyboard: true,
+  touchZoomRotate: true,
+} as const;
+
 class MapboxAdapter {
   private container: HTMLElement;
   private options: MapConfig;
@@ -26,7 +43,6 @@ class MapboxAdapter {
   }
 
   async initialize(): Promise<void> {
-    // Fetch map token from backend
     if (!this.mapToken) {
       this.mapToken = await this.apiClient.getMapToken();
     }
@@ -44,24 +60,59 @@ class MapboxAdapter {
       await this.loadHotels();
     });
 
-    // Add navigation controls
     this.map!.addControl(new mapboxgl.NavigationControl(), 'top-right');
   }
 
-  private async initializeWithPlaceId(): Promise<void> {
-    // Create AbortController for initialization
+  // Helper: Create and manage AbortController
+  private createAbortController(): AbortSignal {
     if (this.abortController) {
       this.abortController.abort();
     }
     this.abortController = new AbortController();
-    const signal = this.abortController.signal;
+    return this.abortController.signal;
+  }
+
+  // Helper: Check if request was aborted
+  private checkAborted(signal: AbortSignal): boolean {
+    return signal.aborted;
+  }
+
+  // Helper: Get default values
+  private getDefaults() {
+    return {
+      adults: this.options.adults || DEFAULT_ADULTS,
+      children: this.options.children || DEFAULT_CHILDREN,
+      currency: this.options.currency || DEFAULT_CURRENCY,
+      guestNationality: this.options.guestNationality || DEFAULT_GUEST_NATIONALITY,
+    };
+  }
+
+  // Helper: Create map with bounds
+  private createMapWithBounds(bounds: [[number, number], [number, number]]): void {
+    this.map = new mapboxgl.Map({
+      container: this.container,
+      style: MAP_STYLE,
+      bounds,
+      fitBoundsOptions: { padding: 50 },
+      ...MAP_OPTIONS,
+    });
+  }
+
+  // Helper: Create map with center
+  private createMapWithCenter(center: [number, number], zoom: number = 9): void {
+    this.map = new mapboxgl.Map({
+      container: this.container,
+      style: MAP_STYLE,
+      center,
+      zoom,
+    });
+  }
+
+  private async initializeWithPlaceId(): Promise<void> {
+    const signal = this.createAbortController();
 
     const placeData = await this.apiClient.getPlace(this.options.placeId!, signal);
-
-    // Check if request was aborted
-    if (signal.aborted) {
-      return;
-    }
+    if (this.checkAborted(signal)) return;
 
     if (!placeData?.data?.viewport) {
       throw new Error(
@@ -69,7 +120,6 @@ class MapboxAdapter {
       );
     }
 
-    // Extract cityName and countryCode from addressComponents
     const cityComponent = placeData.data.addressComponents?.find((c) =>
       c.types.includes('locality'),
     );
@@ -84,49 +134,26 @@ class MapboxAdapter {
     };
 
     const { viewport } = placeData.data;
-
-    this.map = new mapboxgl.Map({
-      container: this.container,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      bounds: [
-        [viewport.low.longitude, viewport.low.latitude],
-        [viewport.high.longitude, viewport.high.latitude],
-      ],
-      fitBoundsOptions: {
-        padding: 50,
-      },
-      scrollZoom: false, // Disable scroll zoom
-      boxZoom: true, // Enable box zoom
-      dragRotate: true, // Enable drag rotation
-      keyboard: true, // Enable keyboard controls
-      touchZoomRotate: true, // Enable touch zoom & rotation
-    });
+    this.createMapWithBounds([
+      [viewport.low.longitude, viewport.low.latitude],
+      [viewport.high.longitude, viewport.high.latitude],
+    ]);
   }
 
   private async initializeWithCity(): Promise<void> {
-    // Create AbortController for initialization
-    if (this.abortController) {
-      this.abortController.abort();
-    }
-    this.abortController = new AbortController();
-    const signal = this.abortController.signal;
+    const signal = this.createAbortController();
 
     this.locationParams = {
       cityName: this.options.city!.name,
       countryCode: this.options.city!.countryCode,
     };
 
-    // Use Mapbox Geocoding API to get bounding box for the city
     const geocodeData = await this.geocodeCity(
       this.options.city!.name,
       this.options.city!.countryCode,
       signal,
     );
-
-    // Check if request was aborted
-    if (signal.aborted) {
-      return;
-    }
+    if (this.checkAborted(signal)) return;
 
     if (!geocodeData?.features?.[0]?.properties?.bbox) {
       throw new Error(
@@ -134,25 +161,11 @@ class MapboxAdapter {
       );
     }
 
-    // Extract bbox: [minLng, minLat, maxLng, maxLat]
     const bbox = geocodeData.features[0].properties.bbox;
-
-    this.map = new mapboxgl.Map({
-      container: this.container,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      bounds: [
-        [bbox[0], bbox[1]], // [minLng, minLat]
-        [bbox[2], bbox[3]], // [maxLng, maxLat]
-      ],
-      fitBoundsOptions: {
-        padding: 50,
-      },
-      scrollZoom: false,
-      boxZoom: true,
-      dragRotate: true,
-      keyboard: true,
-      touchZoomRotate: true,
-    });
+    this.createMapWithBounds([
+      [bbox[0], bbox[1]], // [minLng, minLat]
+      [bbox[2], bbox[3]], // [maxLng, maxLat]
+    ]);
   }
 
   private async geocodeCity(
@@ -161,22 +174,15 @@ class MapboxAdapter {
     signal?: AbortSignal,
   ): Promise<any> {
     try {
-      const queryCity = encodeURIComponent(cityName);
-      const url = `https://api.mapbox.com/search/geocode/v6/forward?q=${queryCity}&country=${countryCode}&access_token=${this.mapToken}`;
+      const query = encodeURIComponent(cityName);
+      const url = `https://api.mapbox.com/search/geocode/v6/forward?q=${query}&country=${countryCode}&access_token=${this.mapToken}`;
       const response = await fetch(url, { signal });
 
       if (!response.ok) {
-        let errorMessage = `Failed to geocode city "${cityName}, ${countryCode}"`;
-        try {
-          const errorData = await response.json().catch(() => null);
-          if (errorData?.error || errorData?.message) {
-            errorMessage += `: ${errorData.error || errorData.message}`;
-          } else {
-            errorMessage += ` (HTTP ${response.status}: ${response.statusText})`;
-          }
-        } catch {
-          errorMessage += ` (HTTP ${response.status}: ${response.statusText})`;
-        }
+        const errorMessage = await this.parseErrorResponse(
+          response,
+          `Failed to geocode city "${cityName}, ${countryCode}"`,
+        );
         throw new Error(errorMessage);
       }
 
@@ -192,72 +198,65 @@ class MapboxAdapter {
     }
   }
 
+  // Helper: Parse error response
+  private async parseErrorResponse(response: Response, baseMessage: string): Promise<string> {
+    try {
+      const errorData = await response.json().catch(() => null);
+      if (errorData?.error || errorData?.message) {
+        return `${baseMessage}: ${errorData.error || errorData.message}`;
+      }
+      return `${baseMessage} (HTTP ${response.status}: ${response.statusText})`;
+    } catch {
+      return `${baseMessage} (HTTP ${response.status}: ${response.statusText})`;
+    }
+  }
+
   private async initializeWithCoordinates(): Promise<void> {
     this.locationParams = {
       latitude: this.options.coordinates!.latitude,
       longitude: this.options.coordinates!.longitude,
     };
 
-    this.map = new mapboxgl.Map({
-      container: this.container,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [this.options.coordinates!.longitude, this.options.coordinates!.latitude],
-      zoom: 9,
-    });
+    this.createMapWithCenter([
+      this.options.coordinates!.longitude,
+      this.options.coordinates!.latitude,
+    ]);
   }
 
   async loadHotels(): Promise<void> {
-    if (this.abortController) {
-      this.abortController.abort();
-    }
-
-    this.abortController = new AbortController();
-    const signal = this.abortController.signal;
+    const signal = this.createAbortController();
 
     try {
-      // Fetch hotels (with coordinates)
       const hotelsData = await this.apiClient.getHotels(
         {
           ...this.locationParams,
-          limit: 20,
+          limit: HOTEL_LIMIT,
           minRating: this.options.minRating,
         },
         signal,
       );
+      if (this.checkAborted(signal)) return;
 
-      if (signal.aborted) {
-        return;
-      }
-
-      // Resolve runtime defaults
-      const adults = this.options.adults || 2;
-      const children = this.options.children || [];
-      const currency = this.options.currency || 'USD';
-      const guestNationality = this.options.guestNationality || 'US';
-
-      // Fetch hotel rates (prices)
+      const defaults = this.getDefaults();
       const ratesData = await this.apiClient.getRates(
         {
           ...this.locationParams,
           occupancies: [
             {
-              adults,
-              ...(children.length > 0 ? { children } : {}),
+              adults: defaults.adults,
+              ...(defaults.children.length > 0 ? { children: defaults.children } : {}),
             },
           ],
           checkin: this.checkin,
           checkout: this.checkout,
-          guestNationality,
-          currency,
+          guestNationality: defaults.guestNationality,
+          currency: defaults.currency,
           maxRatesPerHotel: 1,
-          limit: 20,
+          limit: HOTEL_LIMIT,
         },
         signal,
       );
-
-      if (signal.aborted) {
-        return;
-      }
+      if (this.checkAborted(signal)) return;
 
       if (!hotelsData?.data || !ratesData?.data) {
         console.warn('No hotel or rates data received');
@@ -265,13 +264,8 @@ class MapboxAdapter {
       }
 
       const hotelsWithPrices = this.mergeHotelsWithRates(hotelsData.data, ratesData.data);
-
       this.clearMarkers();
-
-      // Add markers for each hotel
-      hotelsWithPrices.forEach((hotel) => {
-        this.addHotelMarker(hotel);
-      });
+      hotelsWithPrices.forEach((hotel) => this.addHotelMarker(hotel));
 
       console.log(`✅ Loaded ${hotelsWithPrices.length} hotels`);
     } catch (error) {
@@ -286,70 +280,46 @@ class MapboxAdapter {
     hotels: HotelsResponse['data'],
     rates: RatesResponse['data'],
   ): Hotel[] {
-    // Create a map: hotelId -> {price, currency}
     const priceMap = new Map<string, { price: number; currency: string }>();
 
-    // Add price data to the map
     rates.forEach((rate) => {
       const sellingPrice = rate.roomTypes[0]?.suggestedSellingPrice.amount;
       const currency = rate.roomTypes[0]?.suggestedSellingPrice.currency;
 
       if (sellingPrice && currency) {
-        priceMap.set(rate.hotelId, {
-          price: sellingPrice,
-          currency,
-        });
+        priceMap.set(rate.hotelId, { price: sellingPrice, currency });
       }
     });
 
-    // Merge hotels with their prices
     const hotelsWithPrices: Hotel[] = [];
 
     hotels.forEach((hotel) => {
       const priceInfo = priceMap.get(hotel.id);
+      if (!priceInfo) return;
 
-      if (priceInfo) {
-        hotelsWithPrices.push({
-          id: hotel.id,
-          name: hotel.name,
-          latitude: hotel.latitude,
-          longitude: hotel.longitude,
-          address: hotel.address,
-          rating: hotel.rating,
-          photo: hotel.main_photo,
-          stars: hotel.stars,
-          priceInfo: {
-            price: priceInfo.price,
-            currency: priceInfo.currency,
-          },
-        });
-      }
+      hotelsWithPrices.push({
+        id: hotel.id,
+        name: hotel.name,
+        latitude: hotel.latitude,
+        longitude: hotel.longitude,
+        address: hotel.address,
+        rating: hotel.rating,
+        photo: hotel.main_photo,
+        stars: hotel.stars,
+        priceInfo,
+      });
     });
 
     return hotelsWithPrices;
   }
 
-  private addHotelMarker(hotel: Hotel): void {
-    if (!hotel.latitude || !hotel.longitude || !this.map) {
-      return;
-    }
-
-    const currency = this.options.currency || 'USD';
-    const whitelabelUrl = buildWhitelabelUrl({
-      hotelId: hotel.id,
-      checkin: this.checkin,
-      checkout: this.checkout,
-      adults: this.options.adults || 2,
-      children: this.options.children || [],
-      currency,
-      whitelabelDomain: this.options.whitelabelUrl,
-    });
-
+  // Helper: Generate popup HTML
+  private generatePopupHTML(hotel: Hotel, whitelabelUrl: string): string {
     const ratingHtml = hotel.rating
       ? `<span style="font-size: 14px;">⭐ ${hotel.rating}</span><br/>`
       : '';
 
-    const popupContent = `
+    return `
       <div style="padding: 8px;">
         <strong>${hotel.name}</strong><br/>
         <span style="font-size: 12px; color: #666;">${hotel.address}</span><br/>
@@ -390,11 +360,28 @@ class MapboxAdapter {
         </button>
       </div>
     `;
+  }
+
+  private addHotelMarker(hotel: Hotel): void {
+    if (!hotel.latitude || !hotel.longitude || !this.map) {
+      return;
+    }
+
+    const defaults = this.getDefaults();
+    const whitelabelUrl = buildWhitelabelUrl({
+      hotelId: hotel.id,
+      checkin: this.checkin,
+      checkout: this.checkout,
+      adults: defaults.adults,
+      children: defaults.children,
+      currency: defaults.currency,
+      whitelabelDomain: this.options.whitelabelUrl,
+    });
 
     const popup = new mapboxgl.Popup({
       offset: 25,
       closeButton: true,
-    }).setHTML(popupContent);
+    }).setHTML(this.generatePopupHTML(hotel, whitelabelUrl));
 
     const marker = new mapboxgl.Marker()
       .setLngLat([hotel.longitude, hotel.latitude])
@@ -404,7 +391,6 @@ class MapboxAdapter {
     popup.on('open', () => {
       const popupElement = popup.getElement();
       const bookBtn = popupElement?.querySelector('button');
-
       if (bookBtn) {
         bookBtn.addEventListener('click', () => {
           window.open(whitelabelUrl, '_blank');
