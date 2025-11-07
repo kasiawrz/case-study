@@ -37,7 +37,7 @@ LiteAPI.Map.init({ selector: "#foo" })
       );
     }
 
-    // Validate location - exactly one of hasPlaceId, has City, has Coordinates needs to be treu
+    // Validate location - exactly one of hasPlaceId, hasCity, hasCoordinates needs to be treu
     const hasPlaceId = !!this.options.placeId;
     const hasCity = !!(this.options.city?.name && this.options.city?.countryCode);
     const hasCoordinates = !!(
@@ -121,9 +121,7 @@ LiteAPI.Map.init({ selector: "#foo" })
     }
   }
 
-  /**
-   * Destroy the map instance
-   */
+  // Destroy the map instance
   destroy(): void {
     if (this.adapter && typeof this.adapter.destroy === 'function') {
       this.adapter.destroy();

@@ -52,11 +52,11 @@ export interface PlaceData {
 
 // Parameters for fetching hotels (GET /api/hotels)
 export interface HotelsParams {
-  countryCode?: string; // TODO RM?
-  cityName?: string; // TODO RM?
-  placeId: string;
+  countryCode?: string;
+  cityName?: string;
+  placeId?: string;
   limit?: number;
-  minRating?: number; // TO DO? Should I keep it?
+  minRating?: number;
 }
 
 // LiteAPI /data/hotels response (has coordinates)

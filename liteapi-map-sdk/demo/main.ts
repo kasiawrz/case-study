@@ -39,10 +39,14 @@ window.addEventListener('DOMContentLoaded', async () => {
   try {
     const amsMap = await LiteAPI.Map.init({
       selector: '#map-ams',
-      placeId: 'ChIJVXealLU_xkcRja_At0z9AGY', // AMS
-      // city: {
-      //     name: "Amsterdam",
-      //     countryCode: "NL",
+      // placeId: 'ChIJVXealLU_xkcRja_At0z9AGY', // AMS
+      city: {
+        name: 'Amsterdam',
+        countryCode: 'NL',
+      },
+      // coordinates: {
+      //   latitude: 52.3779,
+      //   longitude: 4.897,
       // },
       mapToken,
       apiUrl: 'http://localhost:3001',

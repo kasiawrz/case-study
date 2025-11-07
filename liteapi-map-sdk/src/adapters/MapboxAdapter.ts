@@ -31,9 +31,9 @@ class MapboxAdapter {
     if (this.options.placeId) {
       await this.initializeWithPlaceId();
     } else if (this.options.city) {
-      this.initializeWithCity();
+      await this.initializeWithCity();
     } else if (this.options.coordinates) {
-      this.initializeWithCoordinates();
+      await this.initializeWithCoordinates();
     }
 
     this.map!.on('load', async () => {
@@ -99,24 +99,102 @@ class MapboxAdapter {
     });
   }
 
-  private initializeWithCity(): void {
+  private async initializeWithCity(): Promise<void> {
+    // Create AbortController for initialization
+    if (this.abortController) {
+      this.abortController.abort();
+    }
+    this.abortController = new AbortController();
+    const signal = this.abortController.signal;
+
     this.locationParams = {
       cityName: this.options.city!.name,
       countryCode: this.options.city!.countryCode,
     };
 
+    // Use Mapbox Geocoding API to get bounding box for the city
+    const geocodeData = await this.geocodeCity(
+      this.options.city!.name,
+      this.options.city!.countryCode,
+      signal,
+    );
+
+    // Check if request was aborted
+    if (signal.aborted) {
+      return;
+    }
+
+    if (!geocodeData?.features?.[0]?.properties?.bbox) {
+      throw new Error(
+        `Failed to geocode city "${this.options.city!.name}, ${this.options.city!.countryCode}". Please verify the city name and country code are correct.`,
+      );
+    }
+
+    // Extract bbox: [minLng, minLat, maxLng, maxLat]
+    const bbox = geocodeData.features[0].properties.bbox;
+
     this.map = new mapboxgl.Map({
       container: this.container,
       style: 'mapbox://styles/mapbox/streets-v12',
-      // bounds: [
-      //   [viewport.low.longitude, viewport.low.latitude],
-      //   [viewport.high.longitude, viewport.high.latitude],
-      // ],
-      zoom: 12,
+      bounds: [
+        [bbox[0], bbox[1]], // [minLng, minLat]
+        [bbox[2], bbox[3]], // [maxLng, maxLat]
+      ],
+      fitBoundsOptions: {
+        padding: 50,
+      },
+      scrollZoom: false,
+      boxZoom: true,
+      dragRotate: true,
+      keyboard: true,
+      touchZoomRotate: true,
     });
   }
 
-  private initializeWithCoordinates(): void {
+  private async geocodeCity(
+    cityName: string,
+    countryCode: string,
+    signal?: AbortSignal,
+  ): Promise<any> {
+    try {
+      const queryCity = encodeURIComponent(cityName);
+      const url = `https://api.mapbox.com/search/geocode/v6/forward?q=${queryCity}&country=${countryCode}&access_token=${this.options.mapToken}`;
+      console.log('url', url);
+      console.log(
+        '🙈   ',
+        'https://api.mapbox.com/search/geocode/v6/forward?q=Amsterdam&country=NL&access_token=pk.eyJ1Ijoia2FzLXNlIiwiYSI6ImNtaGl1ZDdwajBoY2kybHF3ajQ1b2k3ZjkifQ.J7wxCujqrQ77uysYs4zfQw' ===
+          url,
+      );
+      const response = await fetch(url, { signal });
+      console.log('🙄 ', response);
+      if (!response.ok) {
+        let errorMessage = `Failed to geocode city "${cityName}, ${countryCode}"`;
+        try {
+          const errorData = await response.json().catch(() => null);
+          if (errorData?.error || errorData?.message) {
+            errorMessage += `: ${errorData.error || errorData.message}`;
+          } else {
+            errorMessage += ` (HTTP ${response.status}: ${response.statusText})`;
+          }
+        } catch {
+          errorMessage += ` (HTTP ${response.status}: ${response.statusText})`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      return response.json();
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw error;
+      }
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error(`Network error while geocoding city "${cityName}, ${countryCode}": ${error}`);
+    }
+  }
+
+  private async initializeWithCoordinates(): Promise<void> {
     this.locationParams = {
       latitude: this.options.coordinates!.latitude,
       longitude: this.options.coordinates!.longitude,
@@ -126,7 +204,7 @@ class MapboxAdapter {
       container: this.container,
       style: 'mapbox://styles/mapbox/streets-v12',
       center: [this.options.coordinates!.longitude, this.options.coordinates!.latitude],
-      zoom: 12, // TO DO
+      zoom: 9,
     });
   }
 
@@ -143,7 +221,7 @@ class MapboxAdapter {
       const hotelsData = await this.apiClient.getHotels(
         {
           ...this.locationParams,
-          limit: 200,
+          limit: 20,
           minRating: this.options.minRating,
         },
         signal,
@@ -174,7 +252,7 @@ class MapboxAdapter {
           guestNationality,
           currency,
           maxRatesPerHotel: 1,
-          limit: 200,
+          limit: 20,
         },
         signal,
       );
