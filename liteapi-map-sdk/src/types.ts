@@ -17,6 +17,7 @@ export interface MapConfig {
   // Optional overrides
   currency?: string;
   adults?: number;
+  children?: number[];
   guestNationality?: string;
   checkin?: string;
   checkout?: string;
@@ -78,7 +79,7 @@ export interface HotelsResponse {
 // Parameters for fetching rates (POST /api/hotels/rates)
 // TO DO - chouble check LOCATION param
 export interface RatesParams {
-  occupancies: Array<{ adults: number }>;
+  occupancies: Array<{ adults: number; children?: number[] }>;
   checkin: string;
   checkout: string;
   guestNationality: string;

@@ -33,8 +33,7 @@ describe('ApiClient', () => {
       const result = await apiClient.getPlace('test-place-id');
 
       expect(result).toEqual(mockPlaceData);
-      expect(global.fetch).toHaveBeenCalledWith(`${mockBaseUrl}/api/places/test-place-id`, {
-      });
+      expect(global.fetch).toHaveBeenCalledWith(`${mockBaseUrl}/api/places/test-place-id`, {});
     });
 
     it('should throw error with status code when request fails', async () => {

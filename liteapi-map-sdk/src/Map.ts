@@ -91,6 +91,7 @@ LiteAPI.Map.init({ selector: "#foo" })
         MapConfig,
         | 'currency'
         | 'adults'
+        | 'children'
         | 'guestNationality'
         | 'checkin'
         | 'checkout'
@@ -110,6 +111,9 @@ LiteAPI.Map.init({ selector: "#foo" })
       }
       if (updates.checkout) {
         (this.adapter as any).checkout = updates.checkout;
+      }
+      if (updates.children) {
+        (this.adapter as any).children = updates.children;
       }
 
       // Reload hotels with new configuration

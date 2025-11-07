@@ -121,6 +121,7 @@ describe('Map.updateConfig', () => {
       mapToken: 'test-token',
       currency: 'USD',
       adults: 2,
+      children: [],
       minRating: 8,
     });
 
@@ -145,6 +146,13 @@ describe('Map.updateConfig', () => {
     await mapInstance.updateConfig({ adults: 4 });
 
     expect(mockAdapterInstance.options.adults).toBe(4);
+    expect(mockAdapterInstance.loadHotels).toHaveBeenCalledTimes(1);
+  });
+
+  it('should update children and reload hotels', async () => {
+    await mapInstance.updateConfig({ children: [3, 5] });
+
+    expect(mockAdapterInstance.options.children).toEqual([3, 5]);
     expect(mockAdapterInstance.loadHotels).toHaveBeenCalledTimes(1);
   });
 
@@ -180,12 +188,14 @@ describe('Map.updateConfig', () => {
     await mapInstance.updateConfig({
       currency: 'GBP',
       adults: 3,
+      children: [4],
       minRating: 9,
       guestNationality: 'UK',
     });
 
     expect(mockAdapterInstance.options.currency).toBe('GBP');
     expect(mockAdapterInstance.options.adults).toBe(3);
+    expect(mockAdapterInstance.options.children).toEqual([4]);
     expect(mockAdapterInstance.options.minRating).toBe(9);
     expect(mockAdapterInstance.options.guestNationality).toBe('UK');
     expect(mockAdapterInstance.loadHotels).toHaveBeenCalledTimes(1);
@@ -205,11 +215,13 @@ describe('Map.updateConfig', () => {
     await mapInstance.updateConfig({ currency: 'EUR' });
     await mapInstance.updateConfig({ minRating: 9 });
     await mapInstance.updateConfig({ adults: 4 });
+    await mapInstance.updateConfig({ children: [2, 6] });
 
     expect(mockAdapterInstance.options.currency).toBe('EUR');
     expect(mockAdapterInstance.options.minRating).toBe(9);
     expect(mockAdapterInstance.options.adults).toBe(4);
-    expect(mockAdapterInstance.loadHotels).toHaveBeenCalledTimes(3);
+    expect(mockAdapterInstance.options.children).toEqual([2, 6]);
+    expect(mockAdapterInstance.loadHotels).toHaveBeenCalledTimes(4);
   });
 
   it('should handle empty update object gracefully', async () => {

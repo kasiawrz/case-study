@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { buildWhitelabelUrl } from './whitelabel';
+import { Buffer } from 'node:buffer';
+
+globalThis.btoa = (value: string) => Buffer.from(value, 'utf-8').toString('base64');
+globalThis.atob = (value: string) => Buffer.from(value, 'base64').toString('utf-8');
 
 describe('buildWhitelabelUrl', () => {
   it('should build a valid Whitelabel URL with all parameters', () => {
@@ -21,7 +25,6 @@ describe('buildWhitelabelUrl', () => {
   it('should include the correct hotelId in the path', () => {
     const params = {
       hotelId: 'lp12345',
-      placeId: 'Amsterdam',
       checkin: '2025-12-25',
       checkout: '2025-12-26',
       adults: 2,
@@ -30,5 +33,26 @@ describe('buildWhitelabelUrl', () => {
     const url = buildWhitelabelUrl(params);
 
     expect(url).toMatch(/\/hotels\/lp12345\?/);
+  });
+
+  it('should include the correct occupancy in the path when kids are provided', () => {
+    const params = {
+      hotelId: 'lp12345',
+      checkin: '2025-12-25',
+      checkout: '2025-12-26',
+      adults: 2,
+      children: [3, 5],
+    };
+
+    const url = buildWhitelabelUrl(params);
+
+    const urlObj = new URL(url);
+    const occupanciesParam = urlObj.searchParams.get('occupancies');
+
+    expect(occupanciesParam).toBeTruthy();
+
+    // Decode and verify
+    const decoded = JSON.parse(atob(occupanciesParam!));
+    expect(decoded).toEqual([{ adults: 2, children: [3, 5] }]);
   });
 });

@@ -261,7 +261,6 @@ class MapboxAdapter {
     const currency = this.options.currency || 'USD';
     const whitelabelUrl = buildWhitelabelUrl({
       hotelId: hotel.id,
-      placeId: this.options.placeId || '',
       checkin: this.checkin,
       checkout: this.checkout,
       adults: this.options.adults || 2,
