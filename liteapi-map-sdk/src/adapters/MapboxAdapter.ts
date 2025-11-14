@@ -33,6 +33,7 @@ class MapboxAdapter {
   private locationParams: any = {};
   private abortController: AbortController | null = null;
   private mapToken: string = '';
+  private hotelsData: HotelsResponse['data'] | null = null;
 
   constructor(container: HTMLElement, options: MapConfig) {
     this.container = container;
@@ -108,11 +109,11 @@ class MapboxAdapter {
     });
   }
 
-  private async initializeWithPlaceId(): Promise<void> {
+  private async initializeWithPlaceId(): Promise<string[]> {
     const signal = this.createAbortController();
 
     const placeData = await this.apiClient.getPlace(this.options.placeId!, signal);
-    if (this.checkAborted(signal)) return;
+    if (this.checkAborted(signal)) return [];
 
     if (!placeData?.data?.viewport) {
       throw new Error(
@@ -138,9 +139,11 @@ class MapboxAdapter {
       [viewport.low.longitude, viewport.low.latitude],
       [viewport.high.longitude, viewport.high.latitude],
     ]);
+
+    return [];
   }
 
-  private async initializeWithCity(): Promise<void> {
+  private async initializeWithCity(): Promise<string[]> {
     const signal = this.createAbortController();
 
     this.locationParams = {
@@ -153,7 +156,7 @@ class MapboxAdapter {
       this.options.city!.countryCode,
       signal,
     );
-    if (this.checkAborted(signal)) return;
+    if (this.checkAborted(signal)) return [];
 
     if (!geocodeData?.features?.[0]?.properties?.bbox) {
       throw new Error(
@@ -166,6 +169,8 @@ class MapboxAdapter {
       [bbox[0], bbox[1]], // [minLng, minLat]
       [bbox[2], bbox[3]], // [maxLng, maxLat]
     ]);
+
+    return [];
   }
 
   private async geocodeCity(
@@ -223,7 +228,7 @@ class MapboxAdapter {
     ]);
   }
 
-  async loadHotels(): Promise<void> {
+  private async fetchHotels(): Promise<string[]> {
     const signal = this.createAbortController();
 
     try {
@@ -235,12 +240,47 @@ class MapboxAdapter {
         },
         signal,
       );
-      if (this.checkAborted(signal)) return;
+      if (this.checkAborted(signal)) return [];
 
+      if (!hotelsData?.data || hotelsData.data.length === 0) {
+        console.warn('No hotel data received');
+        this.hotelsData = null;
+        return [];
+      }
+
+      this.hotelsData = hotelsData.data;
+
+      // Get hotel IDs: prefer API-provided hotelIds, fallback to extracting from data
+      const hotelIds =
+        hotelsData.hotelIds?.length > 0
+          ? hotelsData.hotelIds
+          : hotelsData.data.map((hotel) => hotel.id);
+
+      return hotelIds;
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        return [];
+      }
+      console.error('Failed to fetch hotels:', error);
+      this.hotelsData = null;
+      return [];
+    }
+  }
+
+  // Load rates using stored hotel IDs and display markers (called when map loads)
+  private async loadRates(hotelIds: string[]): Promise<void> {
+    if (!this.hotelsData || this.hotelsData.length === 0) {
+      console.warn('No hotel data available to load rates');
+      return;
+    }
+
+    const signal = this.createAbortController();
+
+    try {
       const defaults = this.getDefaults();
       const ratesData = await this.apiClient.getRates(
         {
-          ...this.locationParams,
+          hotelId: hotelIds,
           occupancies: [
             {
               adults: defaults.adults,
@@ -252,18 +292,17 @@ class MapboxAdapter {
           guestNationality: defaults.guestNationality,
           currency: defaults.currency,
           maxRatesPerHotel: 1,
-          limit: HOTEL_LIMIT,
         },
         signal,
       );
       if (this.checkAborted(signal)) return;
 
-      if (!hotelsData?.data || !ratesData?.data) {
-        console.warn('No hotel or rates data received');
+      if (!ratesData?.data) {
+        console.warn('No rates data received');
         return;
       }
 
-      const hotelsWithPrices = this.mergeHotelsWithRates(hotelsData.data, ratesData.data);
+      const hotelsWithPrices = this.mergeHotelsWithRates(this.hotelsData, ratesData.data);
       this.clearMarkers();
       hotelsWithPrices.forEach((hotel) => this.addHotelMarker(hotel));
 
@@ -272,8 +311,17 @@ class MapboxAdapter {
       if (error instanceof Error && error.name === 'AbortError') {
         return;
       }
-      console.error('Failed to load hotels:', error);
+      console.error('Failed to load rates:', error);
     }
+  }
+
+  async loadHotels(): Promise<void> {
+    const hotelIds = await this.fetchHotels();
+    if (hotelIds.length === 0) {
+      console.warn('Skipping rates load because no hotel IDs were fetched');
+      return;
+    }
+    await this.loadRates(hotelIds);
   }
 
   private mergeHotelsWithRates(

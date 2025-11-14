@@ -141,7 +141,21 @@ describe('MapboxAdapter error handling', () => {
       });
 
       mockApiClient.getHotels.mockResolvedValueOnce({
-        data: [{ id: 'hotel1', name: 'Test', latitude: 48.8566, longitude: 2.3522 }],
+        data: [
+          {
+            id: 'hotel1',
+            name: 'Test',
+            latitude: 48.8566,
+            longitude: 2.3522,
+            address: 'Test Address',
+            rating: 4.5,
+            main_photo: 'photo.jpg',
+            stars: 4,
+            currency: 'USD',
+            city: 'Paris',
+            country: 'France',
+          },
+        ],
       });
 
       mockApiClient.getRates.mockRejectedValueOnce(
@@ -161,6 +175,13 @@ describe('MapboxAdapter error handling', () => {
 
       // Should not throw, but log error
       expect(mockApiClient.getRates).toHaveBeenCalled();
+      // Verify getRates was called with hotelId array instead of location params
+      expect(mockApiClient.getRates).toHaveBeenCalledWith(
+        expect.objectContaining({
+          hotelId: ['hotel1'],
+        }),
+        expect.anything(),
+      );
     });
 
     it('should handle empty hotel data gracefully', async () => {
@@ -178,7 +199,6 @@ describe('MapboxAdapter error handling', () => {
       });
 
       mockApiClient.getHotels.mockResolvedValueOnce({ data: [] });
-      mockApiClient.getRates.mockResolvedValueOnce({ data: [] });
 
       const adapter = new MapboxAdapter(container, {
         selector: '#test-map',
@@ -193,6 +213,8 @@ describe('MapboxAdapter error handling', () => {
 
       // Should handle gracefully
       expect(mockApiClient.getHotels).toHaveBeenCalled();
+      // getRates should not be called when there are no hotels
+      expect(mockApiClient.getRates).not.toHaveBeenCalled();
     });
   });
 });

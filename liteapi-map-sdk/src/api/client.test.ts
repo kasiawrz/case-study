@@ -170,13 +170,12 @@ describe('ApiClient', () => {
       });
 
       const params = {
+        hotelId: ['hotel1'],
         occupancies: [{ adults: 2 }],
         checkin: '2025-11-04',
         checkout: '2025-11-05',
         guestNationality: 'US',
         currency: 'USD',
-        countryCode: 'FR',
-        cityName: 'Paris',
       };
 
       const result = await apiClient.getRates(params);
@@ -205,13 +204,12 @@ describe('ApiClient', () => {
 
       await expect(
         apiClient.getRates({
+          hotelId: ['hotel1'],
           occupancies: [{ adults: 2 }],
           checkin: 'invalid',
           checkout: 'invalid',
           guestNationality: 'US',
           currency: 'USD',
-          countryCode: 'FR',
-          cityName: 'Paris',
         }),
       ).rejects.toThrow('Failed to fetch hotel rates: Invalid date range');
     });
@@ -228,13 +226,12 @@ describe('ApiClient', () => {
 
       await expect(
         apiClient.getRates({
+          hotelId: ['hotel1'],
           occupancies: [{ adults: 2 }],
           checkin: '2025-11-04',
           checkout: '2025-11-05',
           guestNationality: 'US',
           currency: 'USD',
-          countryCode: 'FR',
-          cityName: 'Paris',
         }),
       ).rejects.toThrow('Failed to fetch hotel rates (HTTP 429: Too Many Requests)');
     });
@@ -244,13 +241,12 @@ describe('ApiClient', () => {
 
       await expect(
         apiClient.getRates({
+          hotelId: ['hotel1'],
           occupancies: [{ adults: 2 }],
           checkin: '2025-11-04',
           checkout: '2025-11-05',
           guestNationality: 'US',
           currency: 'USD',
-          countryCode: 'FR',
-          cityName: 'Paris',
         }),
       ).rejects.toThrow('Failed to connect');
     });

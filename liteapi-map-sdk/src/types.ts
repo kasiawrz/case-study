@@ -74,17 +74,19 @@ export interface HotelsResponse {
     city: string;
     country: string;
   }>;
+  hotelIds: string[];
 }
 
 // Parameters for fetching rates (POST /api/hotels/rates)
 export interface RatesParams {
+  hotelId: string[];
   occupancies: Array<{ adults: number; children?: number[] }>;
   checkin: string;
   checkout: string;
   guestNationality: string;
   currency: string;
-  countryCode: string;
-  cityName: string;
+  countryCode?: string;
+  cityName?: string;
   maxRatesPerHotel?: number;
   limit?: number;
 }
